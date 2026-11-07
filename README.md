@@ -26,7 +26,9 @@ It is not an Android Auto or Android Automotive OS app.
 
 ## Install
 
-1. Download the APK from **Releases** (or build it, below) and install it on the head unit.
+1. Download the latest APK, [car-dashboard.apk](https://github.com/prajwal4443/car-dashboard/releases/latest/download/car-dashboard.apk)
+   (every version: [Releases](https://github.com/prajwal4443/car-dashboard/releases)), and install it on the head
+   unit. Each version installs over the one before, keeping your maps and settings.
 2. Pick **Car Dashboard** as the Home app when Android asks (or later in Dashboard settings).
 3. Allow **location** (the map, navigation, cameras) and, for Now playing and the next-turn banner, **notification
    access** (Dashboard settings shows the way).

@@ -10,9 +10,11 @@ android {
         applicationId 'com.prajwal.cardashboard'
         minSdk 26
         targetSdk 34
-        versionCode 1
-        // A date-and-time stamp (UTC) after the version, shown in Dashboard settings, to tell builds apart.
-        versionName '1.0.' + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern('yyMMdd.HHmm'))
+        // Release builds (.github/workflows/release.yml) pass both from the tag: v0.8 -> versionName 0.8, versionCode 800.
+        versionCode((project.findProperty('versionCode') ?: '1').toString().toInteger())
+        // Local builds: a date-and-time stamp after the version, shown in Dashboard settings, to tell builds apart.
+        versionName project.findProperty('versionName') ?:
+            '1.0.' + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern('yyMMdd.HHmm'))
         // ARM only (head units and phones): leaves MapLibre's native engine for x86 out of the APK.
         ndk { abiFilters 'armeabi-v7a', 'arm64-v8a' }
     }
