@@ -1,5 +1,6 @@
 package com.prajwal.cardashboard;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ActivityNotFoundException;
@@ -26,6 +27,7 @@ import java.util.Locale;
  * data) are one tap away for when the dashboard itself is the problem.
  */
 public class DashboardSettingsActivity extends Activity {
+    private static final int REQUEST_STORAGE = 4301;
     private LinearLayout rows;
 
     @Override
@@ -37,8 +39,15 @@ public class DashboardSettingsActivity extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        MapDownloads.watch(null);
+        super.onPause();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        MapDownloads.watch(() -> runOnUiThread(this::showRows));
         showRows();
     }
 
@@ -60,6 +69,12 @@ public class DashboardSettingsActivity extends Activity {
         addRow(R.string.set_map_style, getString(describeStyle(DashboardMap.lookupStyle(this))), v -> pickMapStyle());
         addRow(R.string.set_location, getString(DashboardMap.hasLocationPermission(this) ? R.string.set_allowed
                 : R.string.dash_maps_allow), null);
+        if (!DashboardMap.STYLE_OFF.equals(DashboardMap.lookupStyle(this))) {
+            addRow(R.string.set_map_storage, getString(describeMapStorage()), DashboardMap.needsStoragePermission(this)
+                    ? v -> requestPermissions(new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_STORAGE)
+                    : null);
+            addMapDownloadRows();
+        }
         addRow(R.string.set_maps_app, describeApp(DashboardActivity.MAPS_APP), null);
         int homeApps = DashboardActivity.buildHomePackages(this, DashboardActivity.findLaunchableApps(pm)).size();
         addRow(R.string.set_home_apps, getString(R.string.set_home_apps_value, homeApps), null);
@@ -136,6 +151,42 @@ public class DashboardSettingsActivity extends Activity {
             case DashboardMap.STYLE_OFF: return R.string.set_map_off;
             default: return R.string.set_map_dark;
         }
+    }
+
+    /** "Download map area" with the running download's progress, then one row per saved area (tap to see it). */
+    private void addMapDownloadRows() {
+        int percent = MapDownloads.lookupPercent();
+        String status = percent >= 0 ? getString(R.string.set_download_running, percent)
+                : getString(R.string.set_download_detail);
+        addRow(R.string.set_download, status, percent >= 0
+                ? v -> confirm(R.string.set_download_stop_confirm,
+                        () -> MapDownloads.stop(this, () -> done(R.string.set_download_stopped)))
+                : v -> startActivity(new Intent(this, MapAreaPickerActivity.class)));
+        View placeholder = new View(this);
+        rows.addView(placeholder);
+        MapDownloads.listAreas(this, areas -> {
+            int at = rows.indexOfChild(placeholder);
+            if (at < 0) return;   // the rows were rebuilt meanwhile
+            rows.removeView(placeholder);
+            for (MapDownloads.Area area : areas) {
+                View row = buildRow(R.string.set_saved_area, getString(R.string.set_saved_area_value, area.name,
+                        area.date), v -> startActivity(new Intent(this, MapAreaPickerActivity.class)
+                        .putExtra(MapAreaPickerActivity.EXTRA_SHOW_AREA, area.id)));
+                rows.addView(row, at++);
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode == REQUEST_STORAGE) DashboardMap.usePublicStorage(this, inPublicFolder -> showRows());
+    }
+
+    private int describeMapStorage() {
+        if (DashboardMap.isUsingPublicStorage(this)) return R.string.set_map_storage_public;
+        if (DashboardMap.needsStoragePermission(this)) return R.string.set_map_storage_ask;
+        return R.string.set_map_storage_app;
     }
 
     private void addHeading(int text) {

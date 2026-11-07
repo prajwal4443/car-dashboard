@@ -10,6 +10,7 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
@@ -33,9 +34,12 @@ import org.maplibre.android.maps.MapView;
 import org.maplibre.android.maps.Style;
 import org.maplibre.android.module.http.HttpRequestUtil;
 import org.maplibre.android.offline.OfflineManager;
+import org.maplibre.android.storage.FileSource;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
@@ -48,7 +52,7 @@ import okhttp3.OkHttpClient;
  *
  * The style is picked in dashboard settings, from OpenFreeMap's: STYLE_DARK (the default), STYLE_DARK_BLUE (Fiord),
  * STYLE_WHITE (Positron), STYLE_LIGHT (Liberty, the most like Google Maps); or STYLE_OFF (the old picture, no map, no
- * network).
+ * network). Areas saved with "Download map area" (MapDownloads) show offline in every style.
  */
 final class DashboardMap {
     private static final String TAG = "CarDash.Map";
@@ -64,6 +68,8 @@ final class DashboardMap {
     private static final int MAX_PARALLEL_REQUESTS = 4;
     private static boolean prepared;
     static final int REQUEST_LOCATION = 4201;
+    /** Downloaded areas and the cache live here when Storage is allowed: Android keeps it across an uninstall. */
+    static final String PUBLIC_MAPS_DIR = "CarDashboard/maps";
     private static final String PREFS = "dashboard";
     private static final String STYLE_KEY = "map_style";
     private static final String STYLE_URL = "https://tiles.openfreemap.org/styles/";
@@ -135,8 +141,8 @@ final class DashboardMap {
     }
 
     /**
-     * MapLibre, once per process: the cache size, and OpenFreeMap's rules (MAX_PARALLEL_REQUESTS at once, a
-     * User-Agent naming this app).
+     * MapLibre, once per process: the cache size, and OpenFreeMap's offline rules (MapArea.TILE_LIMIT tiles per
+     * download, MAX_PARALLEL_REQUESTS at once, a User-Agent naming this app).
      */
     static void prepare(Context context) {
         if (prepared) return;
@@ -157,7 +163,10 @@ final class DashboardMap {
                 .addNetworkInterceptor(chain -> chain.proceed(
                         chain.request().newBuilder().header("User-Agent", agent).build()))
                 .build());
-        OfflineManager.getInstance(app).setMaximumAmbientCacheSize(CACHE_MAX_BYTES, null);
+        OfflineManager offline = OfflineManager.getInstance(app);
+        offline.setOfflineMapboxTileCountLimit(MapArea.TILE_LIMIT);
+        offline.setMaximumAmbientCacheSize(CACHE_MAX_BYTES, null);
+        usePublicStorage(app, inPublicFolder -> { });
     }
 
     static String buildStyleUrl(String style) {
@@ -298,16 +307,73 @@ final class DashboardMap {
     }
 
     /**
-     * Hold the card, or the first Home of a launch: Android's prompt for what the map still lacks, location (to
-     * follow the car). True when it asked.
+     * Hold the card, or the first Home of a launch: Android's prompts for what the map still lacks, location (to follow
+     * the car) and, up to Android 10, Storage (to keep downloaded areas across an uninstall). True when it asked.
      */
     boolean askForLocation() {
         if (STYLE_OFF.equals(shownStyle)) return false;
         List<String> missing = new ArrayList<>();
         if (!hasLocationPermission(activity)) missing.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (needsStoragePermission(activity)) missing.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (missing.isEmpty()) return false;
         activity.requestPermissions(missing.toArray(new String[0]), REQUEST_LOCATION);
         return true;
+    }
+
+    /** Up to Android 10, without Storage allowed yet: the public map folder is possible but not open to the app. */
+    static boolean needsStoragePermission(Context context) {
+        return Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q
+                && context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED;
+    }
+
+    static boolean canUsePublicStorage(Context context) {
+        return Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q && !needsStoragePermission(context);
+    }
+
+    @SuppressWarnings("deprecation")   // the public storage root: exactly what Android 10 with legacy storage allows
+    static File findPublicMapsDir() {
+        return new File(Environment.getExternalStorageDirectory(), PUBLIC_MAPS_DIR);
+    }
+
+    /** True when MapLibre's store (downloaded areas and cache) is in the public folder. */
+    static boolean isUsingPublicStorage(Context context) {
+        return findPublicMapsDir().getAbsolutePath().equals(FileSource.getResourcesCachePath(context));
+    }
+
+    /**
+     * Moves MapLibre's store into the public folder when Storage is allowed (it keeps that choice itself from then on);
+     * after a reinstall, this finds the areas saved there before. {@code done} gets whether the store is there.
+     */
+    static void usePublicStorage(Context context, Consumer<Boolean> done) {
+        Context app = context.getApplicationContext();
+        if (!canUsePublicStorage(app)) {
+            done.accept(false);
+            return;
+        }
+        MapLibre.getInstance(app);
+        if (isUsingPublicStorage(app)) {
+            done.accept(true);
+            return;
+        }
+        File dir = findPublicMapsDir();
+        if (!dir.isDirectory() && !dir.mkdirs()) {
+            Log.w(TAG, "could not make " + dir);
+            done.accept(false);
+            return;
+        }
+        FileSource.setResourcesCachePath(dir.getAbsolutePath(), new FileSource.ResourcesCachePathChangeCallback() {
+            @Override
+            public void onSuccess(String path) {
+                done.accept(true);
+            }
+
+            @Override
+            public void onError(String message) {
+                Log.w(TAG, "map store stays inside the app: " + message);
+                done.accept(false);
+            }
+        });
     }
 
     /** Location was just allowed: start the arrow now. */

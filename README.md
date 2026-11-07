@@ -1,6 +1,7 @@
 # Car Dashboard
 
-A car-style Home screen for Android head units (and phones): a live map, music, your apps, and a live map.
+A car-style Home screen for Android head units (and phones): a live map, music, your apps, and maps that work **without internet**
+from areas you download.
 
 Made for the many Android head units sold for cars (a full Android tablet behind the dashboard, Android 8 or newer).
 It is not an Android Auto or Android Automotive OS app.
@@ -11,6 +12,8 @@ It is not an Android Auto or Android Automotive OS app.
   tinted from the art), big tiles for your apps, and All apps. Hold a tile to remove it; add apps from All apps.
 - **Live map**: follows the car with a navigation arrow, zooms out with speed, shows your speed. Map styles: Dark, Dark
   blue, Light, White, or off.
+- **Map downloads**: pick a square on a map (up to about 40 × 40 km each); see the downloaded squares, delete them.
+  On Android 10 and older they are kept in a public folder (`CarDashboard/maps`) and survive reinstalling the app.
 - **Startup music**: the music app plays (or shows its song) when the car starts.
 
 ## Install
@@ -19,6 +22,7 @@ It is not an Android Auto or Android Automotive OS app.
 2. Pick **Car Dashboard** as the Home app when Android asks (or later in Dashboard settings).
 3. Allow **location** (the map) and, for Now playing and the next-turn banner, **notification
    access** (Dashboard settings shows the way).
+4. For offline use: **Dashboard settings → Download map area**, while online.
 
 ## Build
 
@@ -39,8 +43,9 @@ All code is in `app/src/main/java/com/prajwal/cardashboard`:
 |---|---|
 | Home screen | `DashboardActivity`, `DashboardAppsActivity`, `DashboardSettingsActivity`, `HomeTiles`, `NowPlaying`, `DashboardWidget`, `CarStartup` |
 | Map | `DashboardMap`, `MapZoom` |
+| Map downloads | `MapArea`, `MapDownloads`, `MapAreaPickerActivity`, `SquareFrame` |
 
-Pure logic (tiles, zoom, the music card) is plain Java with unit tests in `app/src/test`.
+Pure logic (zoom, map areas) is plain Java with unit tests in `app/src/test`.
 
 ## Limits
 

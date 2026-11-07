@@ -17,4 +17,5 @@ Car Dashboard is MIT licensed (see `LICENSE`). It uses, or was built with, the f
 ## Data and services
 
 - **OpenStreetMap** data, © OpenStreetMap contributors, Open Database License (ODbL). It is in the map tiles. The map shows its credit line; keep it visible.
-- **OpenFreeMap** (https://openfreemap.org): the map tiles and styles, free to use, at most 4 requests at once.
+- **OpenFreeMap** (https://openfreemap.org): the map tiles and styles, free to use; downloads follow its limit of
+  3,000 tiles per download and 4 parallel requests.

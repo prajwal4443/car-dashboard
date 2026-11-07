@@ -99,6 +99,31 @@
     <string name="set_map_dark_blue" translatable="false">Dark blue (OpenFreeMap Fiord)</string>
     <string name="set_map_light" translatable="false">Light (OpenFreeMap Liberty, like Google Maps)</string>
     <string name="dash_allow_location" translatable="false">Allow location for the map</string>
+    <string name="set_map_storage" translatable="false">Map storage</string>
+    <string name="set_map_storage_public" translatable="false">CarDashboard/maps folder · kept if the app is uninstalled</string>
+    <string name="set_map_storage_ask" translatable="false">Inside the app (deleted on uninstall) · tap to allow Storage and keep maps</string>
+    <string name="set_map_storage_app" translatable="false">Inside the app (this Android version keeps no public folder)</string>
+    <string name="pick_title" translatable="false">Choose the map area</string>
+    <string name="pick_download" translatable="false">Download this area</string>
+    <string name="pick_size" translatable="false">%1$s · %2$d tiles · about %3$d MB · move and zoom to change</string>
+    <string name="pick_too_big" translatable="false">%1$s is too big (%2$d tiles, limit %3$d): zoom in</string>
+    <string name="pick_started" translatable="false">Downloading the area: progress in Dashboard settings</string>
+    <string name="pick_saved_title" translatable="false">Downloaded area</string>
+    <string name="pick_saved_value" translatable="false">%1$s · saved %2$s</string>
+    <string name="pick_saved_gone" translatable="false">This area is no longer saved</string>
+    <string name="pick_delete" translatable="false">Delete this area</string>
+    <string name="pick_deleted" translatable="false">Area deleted</string>
+    <string name="set_download" translatable="false">Download map area</string>
+    <string name="set_download_detail" translatable="false">Choose a square on the map and save it for use without internet</string>
+    <string name="set_download_running" translatable="false">Downloading… %1$d%% · tap to stop</string>
+    <string name="set_download_stop_confirm" translatable="false">Stop the download? The part saved so far is deleted.</string>
+    <string name="set_download_stopped" translatable="false">Download stopped</string>
+    <string name="set_download_done" translatable="false">Map area saved for offline use</string>
+    <string name="set_download_failed" translatable="false">Map download failed: %1$s</string>
+    <string name="set_download_too_big" translatable="false">Too big for one download (limit %1$d tiles): pick a smaller size</string>
+    <string name="set_saved_area" translatable="false">Saved map area</string>
+    <string name="set_saved_area_value" translatable="false">%1$s · %2$s · tap to see it on the map</string>
+    <string name="set_delete_area_confirm" translatable="false">Delete this saved map area?</string>
     <string name="dash_music_listener_name" translatable="false">Dashboard music and maps</string>
 
     <style name="Theme.Dashboard" parent="android:Theme.Material.NoActionBar">

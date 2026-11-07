@@ -158,6 +158,7 @@ public class DashboardActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, results);
         if (requestCode != DashboardMap.REQUEST_LOCATION) return;
         if (map != null && DashboardMap.hasLocationPermission(this)) map.onLocationAllowed();
+        DashboardMap.usePublicStorage(this, inPublicFolder -> { });
     }
 
     @Override
@@ -376,7 +377,7 @@ public class DashboardActivity extends Activity {
         startApp(this, new Intent(this, DashboardAppsActivity.class));
     }
 
-    /** Hold the map card: allow what the map still needs (location). */
+    /** Hold the map card: allow what the map still needs (location, storage). */
     private void showMapMenu(View anchor) {
         if (map == null) return;
         PopupMenu menu = new PopupMenu(this, anchor);

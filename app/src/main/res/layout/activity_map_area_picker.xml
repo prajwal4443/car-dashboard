@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- "Download map area" (MapAreaPickerActivity): a full-screen map, the square to download, its size and the button. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <org.maplibre.android.maps.MapView
+        android:id="@+id/pickMap"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- The square that gets downloaded: fixed on screen, the map moves under it. -->
+    <com.prajwal.cardashboard.SquareFrame
+        android:id="@+id/pickFrame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:layout_marginTop="96dp"
+        android:layout_marginBottom="112dp"
+        android:background="@drawable/pick_frame" />
+
+    <LinearLayout
+        android:id="@+id/pickTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:padding="@dimen/dash_pad"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#CC0E1424">
+
+        <TextView
+            android:id="@+id/pickTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/pick_title"
+            android:textColor="@color/dash_text"
+            android:textSize="22sp"
+            android:fontFamily="@font/outfit_medium" />
+
+        <TextView
+            android:id="@+id/pickCancel"
+            style="@style/PillButton"
+            android:text="@android:string/cancel" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/pickBottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:padding="@dimen/dash_pad"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#CC0E1424">
+
+        <TextView
+            android:id="@+id/pickSize"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/dash_gap"
+            android:textColor="@color/dash_text"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/pickDownload"
+            style="@style/PillButton"
+            android:text="@string/pick_download" />
+    </LinearLayout>
+</FrameLayout>
