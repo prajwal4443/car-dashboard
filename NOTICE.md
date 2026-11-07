@@ -10,4 +10,11 @@ Car Dashboard is MIT licensed (see `LICENSE`). It uses, or was built with, the f
 - **Outfit** font (`app/src/main/res/font/outfit.ttf`), SIL Open Font License 1.1, Copyright 2021 The Outfit Project
   Authors. See `FONT-LICENSE-OFL.txt`.
 - **Material Design icons** (Google), Apache License 2.0: the vector icons in `app/src/main/res/drawable/ic_*.xml`.
+- **MapLibre Native for Android**, BSD 2-Clause License.
+- **OkHttp**, Apache License 2.0.
 - **Gradle wrapper** (`gradlew`, `gradle/wrapper`), Apache License 2.0.
+
+## Data and services
+
+- **OpenStreetMap** data, © OpenStreetMap contributors, Open Database License (ODbL). It is in the map tiles. The map shows its credit line; keep it visible.
+- **OpenFreeMap** (https://openfreemap.org): the map tiles and styles, free to use, at most 4 requests at once.

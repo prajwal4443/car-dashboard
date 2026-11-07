@@ -13,6 +13,8 @@ android {
         versionCode 1
         // A date-and-time stamp (UTC) after the version, shown in Dashboard settings, to tell builds apart.
         versionName '1.0.' + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern('yyMMdd.HHmm'))
+        // ARM only (head units and phones): leaves MapLibre's native engine for x86 out of the APK.
+        ndk { abiFilters 'armeabi-v7a', 'arm64-v8a' }
     }
 
     buildTypes {
@@ -40,6 +42,10 @@ android {
 }
 
 dependencies {
+    // The maps (DashboardMap, NavigationActivity): MapLibre drawing OpenFreeMap's vector tiles. BSD 2-Clause.
+    implementation 'org.maplibre.gl:android-sdk:11.8.0'
+    // HTTP for MapLibre, place search and routing. Apache 2.0.
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     // Tests only, never in the APK: plain JVM tests (src/test).
     testImplementation 'junit:junit:4.13.2'
 }

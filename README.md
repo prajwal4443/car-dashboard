@@ -1,21 +1,24 @@
 # Car Dashboard
 
-A car-style Home screen for Android head units (and phones): the clock, music and your apps, in big touch tiles.
+A car-style Home screen for Android head units (and phones): a live map, music, your apps, and a live map.
 
 Made for the many Android head units sold for cars (a full Android tablet behind the dashboard, Android 8 or newer).
 It is not an Android Auto or Android Automotive OS app.
 
 ## Features
 
-- **Home dashboard**: clock and greeting, a Maps card, a Now playing card (album art, controls, the background
+- **Home dashboard**: clock and greeting, a live map card, a Now playing card (album art, controls, the background
   tinted from the art), big tiles for your apps, and All apps. Hold a tile to remove it; add apps from All apps.
+- **Live map**: follows the car with a navigation arrow, zooms out with speed, shows your speed. Map styles: Dark, Dark
+  blue, Light, White, or off.
 - **Startup music**: the music app plays (or shows its song) when the car starts.
 
 ## Install
 
 1. Download the APK from **Releases** (or build it, below) and install it on the head unit.
 2. Pick **Car Dashboard** as the Home app when Android asks (or later in Dashboard settings).
-3. For Now playing, allow **notification access** (Dashboard settings shows the way).
+3. Allow **location** (the map) and, for Now playing and the next-turn banner, **notification
+   access** (Dashboard settings shows the way).
 
 ## Build
 
@@ -26,7 +29,7 @@ tools/build.sh testReleaseUnitTest lintRelease assembleRelease
 ```
 
 Or with a local Android SDK (JDK 17, SDK 34): `./gradlew assembleRelease`. The APK is
-`app/build/outputs/apk/release/app-release.apk`. Android 8.0 (API 26) or newer.
+`app/build/outputs/apk/release/app-release.apk`. ARM only (`armeabi-v7a`, `arm64-v8a`), Android 8.0 (API 26) or newer.
 
 ## How it is put together
 
@@ -35,8 +38,9 @@ All code is in `app/src/main/java/com/prajwal/cardashboard`:
 | Area | Classes |
 |---|---|
 | Home screen | `DashboardActivity`, `DashboardAppsActivity`, `DashboardSettingsActivity`, `HomeTiles`, `NowPlaying`, `DashboardWidget`, `CarStartup` |
+| Map | `DashboardMap`, `MapZoom` |
 
-Pure logic (tiles, the music card) is plain Java with unit tests in `app/src/test`.
+Pure logic (tiles, zoom, the music card) is plain Java with unit tests in `app/src/test`.
 
 ## Limits
 

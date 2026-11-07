@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The car dashboard Home (DashboardActivity, NowPlaying). English only for now. -->
+<!-- The car dashboard Home (DashboardActivity, DashboardMap, NowPlaying). English only for now. -->
 <resources>
     <!-- The app. -->
     <string name="app_name" translatable="false">Car Dashboard</string>
@@ -87,6 +87,18 @@
     <string name="set_confirm_yes" translatable="false">Yes</string>
     <string name="set_done" translatable="false">Done</string>
     <string name="set_cant_open" translatable="false">This unit has no such settings screen</string>
+    <string name="dash_maps_allow" translatable="false">Hold to let the map follow the car</string>
+    <string name="set_map_style" translatable="false">Map style</string>
+    <string name="set_map_white" translatable="false">White (OpenFreeMap Positron)</string>
+    <string name="set_map_dark" translatable="false">Dark (OpenFreeMap)</string>
+    <string name="set_map_off" translatable="false">Off (picture, no map)</string>
+    <string name="set_location" translatable="false">Location for the map</string>
+    <string name="set_clear_map" translatable="false">Clear map cache</string>
+    <string name="set_clear_map_detail" translatable="false">Map tiles kept for offline use (up to 300 MB)</string>
+    <string name="set_clear_map_confirm" translatable="false">Delete the saved map tiles? Places load again online.</string>
+    <string name="set_map_dark_blue" translatable="false">Dark blue (OpenFreeMap Fiord)</string>
+    <string name="set_map_light" translatable="false">Light (OpenFreeMap Liberty, like Google Maps)</string>
+    <string name="dash_allow_location" translatable="false">Allow location for the map</string>
     <string name="dash_music_listener_name" translatable="false">Dashboard music and maps</string>
 
     <style name="Theme.Dashboard" parent="android:Theme.Material.NoActionBar">

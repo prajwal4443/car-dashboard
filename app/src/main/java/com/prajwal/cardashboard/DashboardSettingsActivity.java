@@ -57,6 +57,9 @@ public class DashboardSettingsActivity extends Activity {
         addRow(R.string.set_last_startup, lastRun != null ? lastRun : getString(R.string.set_not_yet), null);
         addRow(R.string.set_song_info, getString(hasNotificationAccess() ? R.string.set_allowed : R.string.set_not_allowed),
                 v -> open(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
+        addRow(R.string.set_map_style, getString(describeStyle(DashboardMap.lookupStyle(this))), v -> pickMapStyle());
+        addRow(R.string.set_location, getString(DashboardMap.hasLocationPermission(this) ? R.string.set_allowed
+                : R.string.dash_maps_allow), null);
         addRow(R.string.set_maps_app, describeApp(DashboardActivity.MAPS_APP), null);
         int homeApps = DashboardActivity.buildHomePackages(this, DashboardActivity.findLaunchableApps(pm)).size();
         addRow(R.string.set_home_apps, getString(R.string.set_home_apps_value, homeApps), null);
@@ -66,6 +69,9 @@ public class DashboardSettingsActivity extends Activity {
         addRow(R.string.set_posters, getString(R.string.set_posters_value, art[0], formatMegabytes(art[1])), null);
 
         addHeading(R.string.set_heading_fix);
+        addRow(R.string.set_clear_map, getString(R.string.set_clear_map_detail),
+                v -> confirm(R.string.set_clear_map_confirm,
+                        () -> DashboardMap.clearCache(this, () -> runOnUiThread(() -> done(R.string.set_done)))));
         addRow(R.string.set_clear_posters, getString(R.string.set_clear_posters_detail),
                 v -> confirm(R.string.set_clear_posters_confirm, () -> {
                     NowPlaying.clearArtCache(this);
@@ -102,6 +108,34 @@ public class DashboardSettingsActivity extends Activity {
             version = "?";
         }
         addRow(R.string.set_version, version, null);
+    }
+
+    private void pickMapStyle() {
+        String[] styles = DashboardMap.STYLES;
+        CharSequence[] names = new CharSequence[styles.length];
+        int current = 0;
+        for (int i = 0; i < styles.length; i++) {
+            names[i] = getString(describeStyle(styles[i]));
+            if (styles[i].equals(DashboardMap.lookupStyle(this))) current = i;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.set_map_style)
+                .setSingleChoiceItems(names, current, (dialog, which) -> {
+                    DashboardMap.saveStyle(this, styles[which]);
+                    dialog.dismiss();
+                    showRows();
+                })
+                .show();
+    }
+
+    private static int describeStyle(String style) {
+        switch (style) {
+            case DashboardMap.STYLE_DARK_BLUE: return R.string.set_map_dark_blue;
+            case DashboardMap.STYLE_LIGHT: return R.string.set_map_light;
+            case DashboardMap.STYLE_WHITE: return R.string.set_map_white;
+            case DashboardMap.STYLE_OFF: return R.string.set_map_off;
+            default: return R.string.set_map_dark;
+        }
     }
 
     private void addHeading(int text) {

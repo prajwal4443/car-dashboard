@@ -109,6 +109,88 @@
                 android:importantForAccessibility="no"
                 android:scaleType="centerCrop"
                 android:src="@drawable/dash_map_art" />
+
+            <!-- The live map (DashboardMap); gone with the Off map style. -->
+            <FrameLayout
+                android:id="@+id/dashMapSlot"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/dashMapCredit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="4dp"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:background="#99000000"
+                android:textColor="#CCFFFFFF"
+                android:textSize="9sp"
+                android:visibility="gone" />
+
+            <!-- The car's speed (DashboardMap.showSpeed), top left of the map. -->
+            <TextView
+                android:id="@+id/dashSpeed"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="10dp"
+                android:gravity="center"
+                android:lineSpacingMultiplier="0.85"
+                android:background="@drawable/dash_speed_bg"
+                android:textColor="#FFFFFFFF"
+                android:textSize="18sp"
+                android:fontFamily="@font/outfit_medium"
+                android:visibility="gone" />
+
+            <!-- The navigation app's next turn, from its notification (MusicListener). -->
+            <LinearLayout
+                android:id="@+id/dashTurn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:layout_margin="14dp"
+                android:padding="12dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/dash_turn_bg"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/dashTurnIcon"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitCenter" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="12dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/dashTurnDistance"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:singleLine="true"
+                        android:textColor="#FFFFFFFF"
+                        android:textSize="22sp"
+                        android:fontFamily="@font/outfit_medium" />
+
+                    <TextView
+                        android:id="@+id/dashTurnText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="2"
+                        android:ellipsize="end"
+                        android:textColor="#E6FFFFFF"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </LinearLayout>
         </FrameLayout>
 
         <LinearLayout

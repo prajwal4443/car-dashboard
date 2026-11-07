@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The next-turn banner on the dashboard map: navigation green, as turn-by-turn apps use. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#F20B6E4F" />
+    <corners android:radius="18dp" />
+</shape>

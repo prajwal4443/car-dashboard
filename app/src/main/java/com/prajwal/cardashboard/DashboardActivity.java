@@ -35,8 +35,9 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * A car-style Home for touch head units: clock, a Maps card (a tap opens the navigation app), a Now playing card,
- * and a scrolling row of big Home apps plus All apps. Picked as Home in the Home app
+ * A car-style Home for touch head units: clock, a live map card (DashboardMap: follows the car, shows the navigation
+ * app's next turn, a tap opens the navigation app), a Now playing card, and a scrolling row of big Home apps plus All
+ * apps. Picked as Home in the Home app
  * chooser ("Car Dashboard"); it also has an ordinary app icon.
  *
  * Home apps: the apps added with "Add to Home" (HomeTiles), minus the ones removed. Hold an app to remove it; add
@@ -44,7 +45,7 @@ import java.util.Map;
  */
 public class DashboardActivity extends Activity {
     static final String TAG = "CarDash.Dashboard";
-    /** The navigation app the Maps card opens. */
+    /** The navigation app the map card opens, and whose turn notifications show on it. */
     static final String MAPS_APP = "com.google.android.apps.maps";
     /** At most this many Home apps; the row scrolls sideways past the first few. */
     private static final int MAX_HOME_APPS = 24;
@@ -60,6 +61,7 @@ public class DashboardActivity extends Activity {
     private View widgetArea;
     private LinearLayout tiles;
     private TextView greeting;
+    private DashboardMap map;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private BroadcastReceiver screenWatcher;
     private ValueAnimator backgroundFade;
@@ -83,6 +85,15 @@ public class DashboardActivity extends Activity {
         if (clear != null) clear.setOnClickListener(v -> clearBackgroundApps());
         View maps = findViewById(R.id.dashMaps);
         maps.setOnClickListener(v -> openMaps());
+        maps.setOnLongClickListener(v -> {
+            showMapMenu(v);
+            return true;
+        });
+        try {
+            map = new DashboardMap(this, maps);
+        } catch (RuntimeException | LinkageError e) {
+            Log.w(TAG, "live map off", e);   // the picture stays
+        }
         findViewById(R.id.dashAllApps).setOnClickListener(v -> openAllApps());
         card = findViewById(R.id.nowPlaying);
         widgetArea = findViewById(R.id.dashWidgetArea);
@@ -104,6 +115,10 @@ public class DashboardActivity extends Activity {
     protected void onStart() {
         super.onStart();
         claimStartup();
+        if (map != null) map.start();
+        MusicListener.watchTurns(MAPS_APP, turn -> {
+            if (map != null) map.showTurn(turn);
+        });
         if (nowPlaying != null) nowPlaying.start();
         if (widget != null) widget.start();
     }
@@ -116,11 +131,13 @@ public class DashboardActivity extends Activity {
         showGreeting();
         showCardOrWidget();   // the widget may have been taken off in dashboard settings
         fillTiles();
+        if (map != null) map.resume();
     }
 
     @Override
     protected void onPause() {
         resumed = false;
+        if (map != null) map.pause();
         super.onPause();
     }
 
@@ -131,7 +148,16 @@ public class DashboardActivity extends Activity {
         if (power != null && !power.isInteractive()) CarStartup.recordSleep(this);
         if (nowPlaying != null) nowPlaying.stop();
         if (widget != null) widget.stop();
+        MusicListener.watchTurns(MAPS_APP, null);
+        if (map != null) map.stop();
         super.onStop();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
+        super.onRequestPermissionsResult(requestCode, permissions, results);
+        if (requestCode != DashboardMap.REQUEST_LOCATION) return;
+        if (map != null && DashboardMap.hasLocationPermission(this)) map.onLocationAllowed();
     }
 
     @Override
@@ -189,6 +215,7 @@ public class DashboardActivity extends Activity {
         if (backgroundFade != null) backgroundFade.cancel();
         if (screenWatcher != null) unregisterReceiver(screenWatcher);
         if (nowPlaying != null) nowPlaying.release();
+        if (map != null) map.release();
         super.onDestroy();
     }
 
@@ -347,6 +374,18 @@ public class DashboardActivity extends Activity {
 
     private void openAllApps() {
         startApp(this, new Intent(this, DashboardAppsActivity.class));
+    }
+
+    /** Hold the map card: allow what the map still needs (location). */
+    private void showMapMenu(View anchor) {
+        if (map == null) return;
+        PopupMenu menu = new PopupMenu(this, anchor);
+        menu.getMenu().add(R.string.dash_allow_location);
+        menu.setOnMenuItemClickListener(item -> {
+            map.askForLocation();
+            return true;
+        });
+        menu.show();
     }
 
     /** The Maps card: the navigation app, full screen. */
