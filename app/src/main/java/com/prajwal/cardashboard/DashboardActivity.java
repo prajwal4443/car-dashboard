@@ -42,11 +42,11 @@ import java.util.Map;
  * chooser ("Car Dashboard"); it also has an ordinary app icon.
  *
  * Home apps: the apps added with "Add to Home" (HomeTiles), minus the ones removed. Hold an app to remove it; add
- * apps from All apps (DashboardAppsActivity). Maps: MAPS_APP.
+ * apps from All apps (DashboardAppsActivity). Maps: MAPS_APP, unless a trip of our own runs (NavigationActivity).
  */
 public class DashboardActivity extends Activity {
     static final String TAG = "CarDash.Dashboard";
-    /** The navigation app the map card opens, and whose turn notifications show on it. */
+    /** The navigation app the map card opens when no trip of ours runs, and whose turn notifications show on it. */
     static final String MAPS_APP = "com.google.android.apps.maps";
     /** Place search's answer (PlaceSearchActivity). */
     private static final int REQUEST_SEARCH = 4301;
@@ -87,7 +87,14 @@ public class DashboardActivity extends Activity {
         View clear = findViewById(R.id.dashClear);
         if (clear != null) clear.setOnClickListener(v -> clearBackgroundApps());
         View maps = findViewById(R.id.dashMaps);
-        maps.setOnClickListener(v -> openMaps());
+        // During a trip the card is its mini map: a tap goes back to the navigation screen.
+        maps.setOnClickListener(v -> {
+            if (TripGuide.isActive()) {
+                startActivity(new Intent(this, NavigationActivity.class));
+            } else {
+                openMaps();
+            }
+        });
         maps.setOnLongClickListener(v -> {
             showMapMenu(v);
             return true;
@@ -123,7 +130,7 @@ public class DashboardActivity extends Activity {
         CameraAlertService.update(this);
         if (map != null) map.start();
         MusicListener.watchTurns(MAPS_APP, turn -> {
-            if (map != null) map.showTurn(turn);
+            if (map != null && !TripGuide.isActive()) map.showTurn(turn);   // our own trip's turns win
         });
         if (nowPlaying != null) nowPlaying.start();
         if (widget != null) widget.start();
@@ -172,8 +179,10 @@ public class DashboardActivity extends Activity {
         if (widget != null && widget.handleResult(requestCode, resultCode)) return;
         if (requestCode == REQUEST_SEARCH) {
             if (resultCode == RESULT_OK && data != null) {
-                openMapsTo(data.getDoubleExtra(PlaceSearchActivity.EXTRA_LAT, 0),
+                TripGuide.start(this, data.getStringExtra(PlaceSearchActivity.EXTRA_NAME),
+                        data.getDoubleExtra(PlaceSearchActivity.EXTRA_LAT, 0),
                         data.getDoubleExtra(PlaceSearchActivity.EXTRA_LON, 0));
+                startActivity(new Intent(this, NavigationActivity.class));
             }
             return;
         }
@@ -413,13 +422,6 @@ public class DashboardActivity extends Activity {
             return true;
         });
         menu.show();
-    }
-
-    /** A place picked in search: the navigation app's route to it. */
-    private void openMapsTo(double lat, double lon) {
-        Intent route = new Intent(Intent.ACTION_VIEW,
-                android.net.Uri.parse(String.format(Locale.ROOT, "google.navigation:q=%.6f,%.6f", lat, lon)));
-        startApp(this, route.setPackage(MAPS_APP));
     }
 
     /** The Maps card: the navigation app, full screen. */

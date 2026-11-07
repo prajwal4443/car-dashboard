@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navigation (NavigationActivity): the full-screen map with the route, the next turn, map buttons, and the trip panel. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/navRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Sized and shifted in code (placeCar) so the car sits low on screen while driving. -->
+    <org.maplibre.android.maps.MapView
+        android:id="@+id/navMap"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- The next turn (TripGuide.describeNextTurn). -->
+    <LinearLayout
+        android:id="@+id/navTurn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="12dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:orientation="vertical"
+        android:background="@drawable/dash_turn_bg">
+
+        <TextView
+            android:id="@+id/navTurnDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:textColor="#FFFFFFFF"
+            android:textSize="24sp"
+            android:fontFamily="@font/outfit_medium" />
+
+        <TextView
+            android:id="@+id/navTurnText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="340dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="#E6FFFFFF"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <!-- The car's speed. -->
+    <TextView
+        android:id="@+id/navSpeed"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="@dimen/dash_pad"
+        android:layout_marginBottom="104dp"
+        android:gravity="center"
+        android:lineSpacingMultiplier="0.85"
+        android:background="@drawable/dash_speed_bg"
+        android:textColor="#FFFFFFFF"
+        android:textSize="20sp"
+        android:fontFamily="@font/outfit_medium"
+        android:visibility="gone" />
+
+    <!-- Map buttons. -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginEnd="@dimen/dash_pad"
+        android:layout_marginTop="6dp"
+        android:orientation="vertical">
+
+        <!-- Voice guidance on or muted (VoiceGuide); always shown. -->
+        <ImageButton
+            android:id="@+id/navVoice"
+            style="@style/NavMapButton"
+            android:contentDescription="@string/nav_mute"
+            android:src="@drawable/ic_voice_on" />
+
+        <ImageButton
+            android:id="@+id/navZoomIn"
+            style="@style/NavMapButton"
+            android:contentDescription="@string/nav_zoom_in"
+            android:src="@drawable/ic_zoom_in" />
+
+        <ImageButton
+            android:id="@+id/navZoomOut"
+            style="@style/NavMapButton"
+            android:contentDescription="@string/nav_zoom_out"
+            android:src="@drawable/ic_zoom_out" />
+
+        <ImageButton
+            android:id="@+id/navOverview"
+            style="@style/NavMapButton"
+            android:contentDescription="@string/nav_overview"
+            android:src="@drawable/ic_route_overview" />
+
+        <ImageButton
+            android:id="@+id/navRecenter"
+            style="@style/NavMapButton"
+            android:contentDescription="@string/nav_recenter"
+            android:src="@drawable/ic_recenter"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- The trip: what is left, the route, and its buttons. -->
+    <LinearLayout
+        android:id="@+id/navPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:paddingStart="@dimen/dash_pad"
+        android:paddingEnd="@dimen/dash_pad"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#F20E1424">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/navRemaining"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:textColor="@color/dash_text"
+                android:textSize="22sp"
+                android:fontFamily="@font/outfit_medium" />
+
+            <TextView
+                android:id="@+id/navRouteState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textColor="@color/dash_text_dim"
+                android:textSize="14sp" />
+
+            <!-- The ways to choose from before Start (nav_route_choice), when the router offers more than one. -->
+            <LinearLayout
+                android:id="@+id/navChoices"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/navSearch"
+            style="@style/PillButton"
+            android:drawableStart="@drawable/ic_search"
+            android:text="@string/nav_change" />
+
+        <TextView
+            android:id="@+id/navStart"
+            style="@style/PillButton"
+            android:text="@string/nav_start" />
+
+        <TextView
+            android:id="@+id/navExit"
+            style="@style/PillButton"
+            android:text="@string/nav_exit" />
+    </LinearLayout>
+</FrameLayout>

@@ -105,6 +105,9 @@ final class DashboardMap {
     private final TextView turnText;
     /** The car's speed in the map's top left corner (km/h), shown once the GPS gives one. */
     private final TextView speed;
+    private final Runnable tripWatcher = this::showTripOnCard;
+    /** A trip was on the card at the last update: the turn banner is cleared when one starts. */
+    private boolean tripShown;
     /** The search button: moves under the turn banner with the other top controls. */
     private final View searchButton;
     private MapView mapView;
@@ -240,11 +243,14 @@ final class DashboardMap {
         if (mapView == null) return;
         mapView.onResume();
         startFollowingSpeed();
+        TripGuide.watch(tripWatcher);
+        showTripOnCard();
         if (!askedThisLaunch && askForLocation()) askedThisLaunch = true;
     }
 
     void pause() {
         resumed = false;
+        TripGuide.unwatch(tripWatcher);
         stopFollowingSpeed();
         if (mapView != null) mapView.onPause();
     }
@@ -429,6 +435,8 @@ final class DashboardMap {
             map = loaded;
             loaded.setStyle(new Style.Builder().fromUri(url), ready -> {
                 style = ready;
+                RouteLayers.addLayers(ready, 5f);   // below the cameras and the arrow
+                RouteLayers.showTrip(ready);
                 showCameras();
                 if (hasLocationPermission(activity)) showLocation();
             });
@@ -541,6 +549,17 @@ final class DashboardMap {
     private void moveTopControls(float down) {
         speed.setTranslationY(down);
         searchButton.setTranslationY(down);
+    }
+
+    /**
+     * The trip in progress (TripGuide) on the card, like a navigation app's mini map: the route line and the place
+     * only, no text over the route (the card's tap opens the navigation screen with the details).
+     */
+    private void showTripOnCard() {
+        if (style != null) RouteLayers.showTrip(style);
+        boolean active = TripGuide.isActive();
+        if (active && !tripShown) showTurn(null);   // a Google Maps turn banner from before the trip
+        tripShown = active;
     }
 
     /** The newest position any provider knows, or null (also without location allowed). */

@@ -6,7 +6,7 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
-    <!-- Maps and place search online; online and offline state. -->
+    <!-- Maps, place search and routes online; online and offline state. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- The car on the map, zoom by speed, navigation, speed camera alerts. -->
@@ -85,6 +85,13 @@
             android:exported="false"
             android:taskAffinity="com.prajwal.cardashboard.apps"
             android:excludeFromRecents="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|uiMode" />
+
+        <!-- Navigation: a place picked in search, or the map card during a trip. -->
+        <activity
+            android:name=".NavigationActivity"
+            android:label="@string/nav_title"
+            android:exported="false"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|uiMode" />
 
         <!-- Place search (the map card's search button). -->

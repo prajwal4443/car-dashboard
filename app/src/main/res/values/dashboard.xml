@@ -127,6 +127,29 @@
     <string name="search_offline_heading" translatable="false">Downloaded maps</string>
     <string name="search_nothing" translatable="false">Nothing found for “%1$s”</string>
     <string name="search_near" translatable="false">near %1$s</string>
+    <string name="nav_title" translatable="false">Navigation</string>
+    <string name="nav_voice_start" translatable="false">Starting the route to %1$s</string>
+    <string name="nav_voice_arrived" translatable="false">You have arrived at %1$s</string>
+    <string name="nav_voice_rerouted" translatable="false">Route updated</string>
+    <string name="nav_mute" translatable="false">Mute voice guidance</string>
+    <string name="nav_voice_muted" translatable="false">Voice guidance muted</string>
+    <string name="nav_voice_on" translatable="false">Voice guidance on</string>
+    <string name="nav_unmute" translatable="false">Turn voice guidance on</string>
+    <string name="nav_start" translatable="false">Start</string>
+    <string name="nav_exit" translatable="false">Exit</string>
+    <string name="nav_change" translatable="false">Change</string>
+    <string name="nav_zoom_in" translatable="false">Zoom in</string>
+    <string name="nav_zoom_out" translatable="false">Zoom out</string>
+    <string name="nav_overview" translatable="false">Whole route</string>
+    <string name="nav_recenter" translatable="false">Follow the car</string>
+    <string name="nav_arrived" translatable="false">You have arrived</string>
+    <string name="nav_finding_route" translatable="false">Finding the route…</string>
+    <string name="nav_no_route" translatable="false">No route: no internet (dashed line: straight)</string>
+    <string name="nav_waiting_gps" translatable="false">Waiting for the GPS…</string>
+    <string name="nav_arrive_at" translatable="false">arrive %1$s</string>
+    <string name="nav_straight" translatable="false">%1$s straight</string>
+    <string name="nav_via" translatable="false">via %1$s</string>
+    <string name="nav_no_location" translatable="false">Navigation needs location: allow it from the map card (hold it)</string>
     <string name="cam_delete_mine_detail" translatable="false">%1$d cameras you marked by holding the map</string>
     <string name="cam_delete_mine_confirm" translatable="false">Delete every camera you marked? OpenStreetMap\'s stay.</string>
     <string name="cam_no_position" translatable="false">No GPS position yet: allow location and wait for the arrow on the map</string>
