@@ -32,6 +32,8 @@ public class PlaceIndexService extends Service {
     private static final String TAG = "CarDash.PlaceIndex";
     private static final String EXTRA_MAPS_DIR = "maps_dir";
     private static final String INDEX_FILE = "place-index.tsv";
+    /** The downloaded roads for offline routing (RoadGraph), built from the same tiles. */
+    private static final String ROAD_GRAPH_FILE = "road-graph.bin";
     /** MapLibre's offline database, in its resources cache folder. */
     private static final String MAP_DATABASE = "mbgl-offline.db";
     /** OpenFreeMap's vector tiles (every map style shares them). */
@@ -55,6 +57,10 @@ public class PlaceIndexService extends Service {
         } catch (IllegalStateException e) {
             Log.i(TAG, "index rebuild left for the next search", e);
         }
+    }
+
+    static File findRoadGraphFile(Context context) {
+        return new File(FileSource.getResourcesCachePath(context), ROAD_GRAPH_FILE);
     }
 
     static File findIndexFile(Context context) {
@@ -112,6 +118,7 @@ public class PlaceIndexService extends Service {
     private static void buildIndex(File mapsDir) throws IOException {
         long started = SystemClock.elapsedRealtime();
         File database = new File(mapsDir, MAP_DATABASE);
+        RoadGraph.Builder roads = new RoadGraph.Builder();
         List<PlaceIndex.Place> found = new ArrayList<>();
         int tileCount = 0;
         if (database.isFile()) {
@@ -127,12 +134,16 @@ public class PlaceIndexService extends Service {
                     if (stored == null || !seenTiles.add(((long) x << 32) | y)) continue;
                     byte[] tile = VectorTileReader.unpackStoredTile(stored, tiles.getInt(3) != 0);
                     found.addAll(PlaceIndex.extractPlaces(tile, PlaceIndex.INDEX_ZOOM, x, y));
+                    roads.addTile(x, y, tile);
                     tileCount++;
                 }
             }
         }
         List<PlaceIndex.Place> places = PlaceIndex.mergeDuplicates(found);
         PlaceIndex.saveIndex(new File(mapsDir, INDEX_FILE), places);
+        RoadGraph graph = roads.build();
+        graph.save(new File(mapsDir, ROAD_GRAPH_FILE));
+        Log.i(TAG, "road graph: " + graph.countNodes() + " points, " + graph.countEdges() + " links");
         Log.i(TAG, "indexed " + places.size() + " places from " + tileCount + " tiles in "
                 + (SystemClock.elapsedRealtime() - started) + " ms");
     }

@@ -11,9 +11,11 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -61,6 +63,14 @@ final class TripGuide {
     private static boolean routeFailed;
     private static long lastRouteRequest = -ROUTE_RETRY_MS;
     private static int offRouteCount;
+    /** The chosen route came from the downloaded roads (OfflineRouter), not the online router. */
+    private static boolean routeOffline;
+    /** Without a route offline: whether the car's position and the place lie on the downloaded roads. */
+    private static boolean startDownloaded;
+    private static boolean placeDownloaded;
+    /** The downloaded roads, loaded on the router thread; reloaded when their file is rebuilt. */
+    private static RoadGraph roadGraph;
+    private static long roadGraphTime;
     /** Spoken turns (VoiceGuide), and whether the arrival was said. */
     private static final TurnAnnouncer ANNOUNCER = new TurnAnnouncer();
     private static boolean arrivalSpoken;
@@ -103,6 +113,8 @@ final class TripGuide {
         route = null;
         progress = null;
         routeFailed = false;
+        startDownloaded = true;
+        placeDownloaded = true;
         offRouteCount = 0;
         lastRouteRequest = -ROUTE_RETRY_MS;
         Location known = DashboardMap.findLastLocation(app);   // the newest: the trip starts where the car is now
@@ -250,10 +262,6 @@ final class TripGuide {
         if (from == null || findingRoute) return;
         long now = SystemClock.elapsedRealtime();
         if (now - lastRouteRequest < ROUTE_RETRY_MS) return;
-        if (!OnlineSearch.hasInternet(app)) {
-            routeFailed = true;
-            return;
-        }
         lastRouteRequest = now;
         lastRouteFrom = from;
         findingRoute = true;
@@ -263,17 +271,42 @@ final class TripGuide {
         double toLat = destinationLat;
         double toLon = destinationLon;
         boolean offerOthers = !driving;   // other ways to choose from before driving; a reroute takes the fastest
+        boolean online = OnlineSearch.hasInternet(app);
+        File roadFile = PlaceIndexService.findRoadGraphFile(app);
         ROUTER.execute(() -> {
             List<DrivingRoute> found = null;
-            try {
-                found = RouteFinder.findRoutes(fromLat, fromLon, toLat, toLon, offerOthers);
-            } catch (IOException e) {
-                Log.w(TAG, "no route", e);
+            if (online) {
+                try {
+                    found = RouteFinder.findRoutes(fromLat, fromLon, toLat, toLon, offerOthers);
+                } catch (IOException e) {
+                    Log.w(TAG, "no online route, trying the downloaded roads", e);
+                }
             }
+            boolean offline = found == null;
+            boolean startOnRoads = true;
+            boolean placeOnRoads = true;
+            if (offline) {
+                RoadGraph graph = loadRoadGraph(roadFile);
+                DrivingRoute downloaded = OfflineRouter.findRoute(graph, fromLat, fromLon, toLat, toLon);
+                if (downloaded != null) {
+                    found = Collections.singletonList(downloaded);
+                } else {
+                    startOnRoads = OfflineRouter.canStartAt(graph, fromLat, fromLon);
+                    placeOnRoads = OfflineRouter.canEndAt(graph, toLat, toLon);
+                    Log.i(TAG, "start " + OfflineRouter.describeCoverage(graph, fromLat, fromLon));
+                    Log.i(TAG, "place " + OfflineRouter.describeCoverage(graph, toLat, toLon));
+                }
+                Log.i(TAG, downloaded != null ? "offline route " + Math.round(downloaded.measureLengthMeters()) + " m"
+                        : "no offline route: start on downloaded roads " + startOnRoads + ", place " + placeOnRoads);
+            }
+            boolean startCovered = startOnRoads;
+            boolean placeCovered = placeOnRoads;
             List<DrivingRoute> answer = found;
             MAIN.post(() -> {
                 if (forTrip != tripNumber) return;
                 findingRoute = false;
+                startDownloaded = startCovered;
+                placeDownloaded = placeCovered;
                 routeFailed = answer == null;
                 if (answer != null) {
                     if (driving) {
@@ -281,6 +314,7 @@ final class TripGuide {
                         VoiceGuide.speak(app, app.getString(R.string.nav_voice_rerouted));
                     }
                     routes = answer;
+                    routeOffline = offline;
                     chosenRoute = 0;
                     route = answer.get(0);
                     offRouteCount = 0;
@@ -290,6 +324,22 @@ final class TripGuide {
                 notifyWatchers();
             });
         });
+    }
+
+    /** The downloaded roads, read again when the file was rebuilt; null without a download. Router thread only. */
+    private static RoadGraph loadRoadGraph(File file) {
+        long changed = file.isFile() ? file.lastModified() : 0;
+        if (changed == roadGraphTime) return roadGraph;
+        try {
+            long started = SystemClock.elapsedRealtime();
+            roadGraph = RoadGraph.load(file);
+            Log.i(TAG, "road graph loaded in " + (SystemClock.elapsedRealtime() - started) + " ms");
+        } catch (IOException | RuntimeException e) {
+            Log.w(TAG, "road graph unreadable", e);
+            roadGraph = null;
+        }
+        roadGraphTime = changed;
+        return roadGraph;
     }
 
     /** True when the car is at the place. */
@@ -334,8 +384,15 @@ final class TripGuide {
 
     /** The route's main roads ("via NH66"), or why there is no route. */
     static String describeRouteState() {
-        if (route != null) return route.summary.isEmpty() ? "" : app.getString(R.string.nav_via, route.summary);
+        if (route != null) {
+            String via = route.summary.isEmpty() ? "" : app.getString(R.string.nav_via, route.summary);
+            if (!routeOffline) return via;
+            return via.isEmpty() ? app.getString(R.string.nav_offline_route) : via + " · "
+                    + app.getString(R.string.nav_offline_route);
+        }
         if (findingRoute) return app.getString(R.string.nav_finding_route);
+        if (!startDownloaded) return app.getString(R.string.nav_start_not_downloaded);
+        if (!placeDownloaded) return app.getString(R.string.nav_place_not_downloaded, destinationName);
         if (routeFailed || lastFix != null) return app.getString(R.string.nav_no_route);
         return app.getString(R.string.nav_waiting_gps);
     }

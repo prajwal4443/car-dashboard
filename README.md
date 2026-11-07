@@ -17,6 +17,7 @@ It is not an Android Auto or Android Automotive OS app.
 - **Navigation**: the whole route and other ways to choose from, then turn by turn: next-turn card, voice guidance
   (mute with the speaker button), the road driven greyed out, rerouting, arrival. Home keeps the trip running on the
   dashboard's map.
+- **Offline routes**: from the roads in the downloaded maps, when there is no internet.
 - **Map downloads**: pick a square on a map (up to about 40 × 40 km each); see the downloaded squares, delete them.
   On Android 10 and older they are kept in a public folder (`CarDashboard/maps`) and survive reinstalling the app.
 - **Speed camera alerts**: offline, from OpenStreetMap, your own marked cameras, and bundled radar zones; a spoken
@@ -52,18 +53,20 @@ All code is in `app/src/main/java/com/prajwal/cardashboard`:
 | Map | `DashboardMap`, `MapZoom`, `RouteLayers` |
 | Map downloads | `MapArea`, `MapDownloads`, `MapAreaPickerActivity`, `SquareFrame` |
 | Search | `PlaceSearchActivity`, `PlaceIndex`, `OnlineSearch`, `VectorTileReader`, `PlaceIndexService` |
-| Navigation | `NavigationActivity`, `TripGuide`, `DrivingRoute`, `RouteFinder`, `TurnAnnouncer`, `VoiceGuide` |
+| Navigation | `NavigationActivity`, `TripGuide`, `DrivingRoute`, `RouteFinder` (online), `OfflineRouter` + `RoadGraph` (offline), `TurnAnnouncer`, `VoiceGuide` |
 | Speed cameras | `CameraAlertService`, `CameraAlerts`, `CameraStore` |
 
-Pure logic (routes, search, turns, zoom, camera alerts) is plain Java with unit tests in `app/src/test`, one on
-a real map tile (`app/src/test/resources`).
+Pure logic (routing, search, turns, zoom, camera alerts) is plain Java with unit tests in `app/src/test`, several on
+real map tiles (`app/src/test/resources`).
 
-Offline search reads the downloaded vector tiles from MapLibre's offline database. That happens in a
+Offline search and routing read the downloaded vector tiles from MapLibre's offline database. That happens in a
 separate process (`PlaceIndexService`), because MapLibre bundles its own SQLite and two copies must not open one file
 in the same process.
 
 ## Limits
 
+- Offline routes know road kinds, one-way streets and names, but not turn restrictions or traffic; the online router
+  is better where there is internet.
 - House addresses are rarely in OpenStreetMap for India: search finds places, roads and points of interest.
 - The online services (Photon, FOSSGIS OSRM, OpenFreeMap) are free community services: use them fairly.
 

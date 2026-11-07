@@ -46,7 +46,130 @@ final class VectorTileReader {
         }
     }
 
+    /** One line feature: its tags and its parts, each part as tile coordinates {x0, y0, x1, y1, …}. */
+    static final class TileLine {
+        final Map<String, Object> tags;
+        final List<int[]> parts;
+        final int extent;
+
+        TileLine(Map<String, Object> tags, List<int[]> parts, int extent) {
+            this.tags = tags;
+            this.parts = parts;
+            this.extent = extent;
+        }
+
+        String lookupText(String key) {
+            Object tag = tags.get(key);
+            return tag instanceof String ? (String) tag : null;
+        }
+
+        /** A number tag (oneway is 1 or -1), or 0 without one. */
+        long lookupNumber(String key) {
+            Object tag = tags.get(key);
+            return tag instanceof Long ? (Long) tag : 0;
+        }
+    }
+
     private VectorTileReader() {
+    }
+
+    /** The line features of one layer ("transportation", say), every part of each with all its points. */
+    static List<TileLine> readLines(byte[] tile, String wantedLayer) {
+        List<TileLine> lines = new ArrayList<>();
+        ProtoCursor cursor = new ProtoCursor(tile, 0, tile.length);
+        while (cursor.hasMore()) {
+            int key = (int) cursor.readVarint();
+            if (key >>> 3 == 3 && (key & 7) == WIRE_BYTES) {
+                readLineLayer(cursor.readBytesCursor(), wantedLayer, lines);
+            } else {
+                cursor.skip(key & 7);
+            }
+        }
+        return lines;
+    }
+
+    private static void readLineLayer(ProtoCursor layer, String wantedLayer, List<TileLine> lines) {
+        String name = null;
+        int extent = DEFAULT_EXTENT;
+        List<String> keys = new ArrayList<>();
+        List<Object> values = new ArrayList<>();
+        List<ProtoCursor> rawFeatures = new ArrayList<>();
+        while (layer.hasMore()) {
+            int key = (int) layer.readVarint();
+            int field = key >>> 3;
+            int wire = key & 7;
+            if (field == 1 && wire == WIRE_BYTES) {
+                name = layer.readText();
+            } else if (field == 2 && wire == WIRE_BYTES) {
+                rawFeatures.add(layer.readBytesCursor());
+            } else if (field == 3 && wire == WIRE_BYTES) {
+                keys.add(layer.readText());
+            } else if (field == 4 && wire == WIRE_BYTES) {
+                values.add(readValue(layer.readBytesCursor()));
+            } else if (field == 5 && wire == WIRE_VARINT) {
+                extent = (int) layer.readVarint();
+            } else {
+                layer.skip(wire);
+            }
+        }
+        if (!wantedLayer.equals(name)) return;
+        for (ProtoCursor raw : rawFeatures) {
+            Map<String, Object> tags = new HashMap<>();
+            List<int[]> parts = null;
+            int type = 0;
+            while (raw.hasMore()) {
+                int key = (int) raw.readVarint();
+                int field = key >>> 3;
+                int wire = key & 7;
+                if (field == 2 && wire == WIRE_BYTES) {
+                    ProtoCursor packed = raw.readBytesCursor();
+                    while (packed.hasMore()) {
+                        int keyIndex = (int) packed.readVarint();
+                        int valueIndex = (int) packed.readVarint();
+                        if (keyIndex < keys.size() && valueIndex < values.size()) {
+                            tags.put(keys.get(keyIndex), values.get(valueIndex));
+                        }
+                    }
+                } else if (field == 3 && wire == WIRE_VARINT) {
+                    type = (int) raw.readVarint();
+                } else if (field == 4 && wire == WIRE_BYTES) {
+                    parts = readLineParts(raw.readBytesCursor());
+                } else {
+                    raw.skip(wire);
+                }
+            }
+            if (type == 2 && parts != null && !parts.isEmpty()) lines.add(new TileLine(tags, parts, extent));
+        }
+    }
+
+    /** A line geometry's parts: each MoveTo starts one, its LineTo points follow (zigzag deltas throughout). */
+    private static List<int[]> readLineParts(ProtoCursor geometry) {
+        List<int[]> parts = new ArrayList<>();
+        int[] current = null;
+        int used = 0;
+        long x = 0;
+        long y = 0;
+        while (geometry.hasMore()) {
+            long command = geometry.readVarint();
+            int id = (int) (command & 7);
+            int count = (int) (command >>> 3);
+            if (id == 7) continue;   // ClosePath: not in lines
+            for (int i = 0; i < count && geometry.hasMore(); i++) {
+                x += decodeZigzag(geometry.readVarint());
+                y += decodeZigzag(geometry.readVarint());
+                if (id == 1) {
+                    if (current != null && used >= 4) parts.add(java.util.Arrays.copyOf(current, used));
+                    current = new int[16];
+                    used = 0;
+                }
+                if (current == null) continue;
+                if (used + 2 > current.length) current = java.util.Arrays.copyOf(current, current.length * 2);
+                current[used++] = (int) x;
+                current[used++] = (int) y;
+            }
+        }
+        if (current != null && used >= 4) parts.add(java.util.Arrays.copyOf(current, used));
+        return parts;
     }
 
     /**

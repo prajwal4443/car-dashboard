@@ -118,8 +118,8 @@
             android:excludeFromRecents="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|uiMode" />
 
-        <!-- Builds offline search from the downloaded maps, in its own process: MapLibre's bundled SQLite and
-             Android's must not open the map database in the same process (PlaceIndexService). -->
+        <!-- Builds offline search and the offline road map from the downloaded maps, in its own process: MapLibre's
+             bundled SQLite and Android's must not open the map database in the same process (PlaceIndexService). -->
         <service
             android:name=".PlaceIndexService"
             android:exported="false"
