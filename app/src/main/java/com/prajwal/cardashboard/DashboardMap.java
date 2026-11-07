@@ -35,6 +35,13 @@ import org.maplibre.android.maps.Style;
 import org.maplibre.android.module.http.HttpRequestUtil;
 import org.maplibre.android.offline.OfflineManager;
 import org.maplibre.android.storage.FileSource;
+import org.maplibre.android.style.expressions.Expression;
+import org.maplibre.android.style.layers.CircleLayer;
+import org.maplibre.android.style.layers.PropertyFactory;
+import org.maplibre.android.style.sources.GeoJsonSource;
+import org.maplibre.geojson.Feature;
+import org.maplibre.geojson.FeatureCollection;
+import org.maplibre.geojson.Point;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -78,6 +85,8 @@ final class DashboardMap {
     /** Where the map opens with no position yet: the middle of India, zoomed out. */
     private static final LatLng NO_FIX_CENTER = new LatLng(20.59, 78.96);
     private static final double NO_FIX_ZOOM = 4;
+    private static final String CAMERA_SOURCE = "speed-cameras";
+    private static final String CAMERA_LAYER = "speed-cameras";
     private static final long SPEED_INTERVAL_MS = 1000;
     /** Where the car sits on the map card, measured up from its bottom edge (0 at the bottom, 1 at the top). */
     private static final float CAR_FROM_BOTTOM = 0.2f;
@@ -314,6 +323,10 @@ final class DashboardMap {
         if (STYLE_OFF.equals(shownStyle)) return false;
         List<String> missing = new ArrayList<>();
         if (!hasLocationPermission(activity)) missing.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && activity.checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            missing.add(Manifest.permission.POST_NOTIFICATIONS);   // the speed camera alerts
+        }
         if (needsStoragePermission(activity)) missing.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         if (missing.isEmpty()) return false;
         activity.requestPermissions(missing.toArray(new String[0]), REQUEST_LOCATION);
@@ -413,6 +426,7 @@ final class DashboardMap {
             map = loaded;
             loaded.setStyle(new Style.Builder().fromUri(url), ready -> {
                 style = ready;
+                showCameras();
                 if (hasLocationPermission(activity)) showLocation();
             });
         });
@@ -494,6 +508,31 @@ final class DashboardMap {
             frame.bottomMargin = cardHeight - 2 * carY;
         }
         slot.requestLayout();
+    }
+
+    /** The speed cameras (CameraStore) as red dots on the map; again after a camera is marked or the list updated. */
+    void showCameras() {
+        if (style == null) return;
+        List<Feature> points = new ArrayList<>();
+        for (CameraStore.Camera camera : CameraStore.load(activity)) {
+            Feature point = Feature.fromGeometry(Point.fromLngLat(camera.lon, camera.lat));
+            point.addBooleanProperty("approx", camera.approx);
+            points.add(point);
+        }
+        FeatureCollection all = FeatureCollection.fromFeatures(points);
+        GeoJsonSource source = style.getSourceAs(CAMERA_SOURCE);
+        if (source != null) {
+            source.setGeoJson(all);
+            return;
+        }
+        style.addSource(new GeoJsonSource(CAMERA_SOURCE, all));
+        style.addLayer(new CircleLayer(CAMERA_LAYER, CAMERA_SOURCE).withProperties(
+                PropertyFactory.circleRadius(6f),
+                // Red: an exact camera. Orange: an approximate one (warned as a zone).
+                PropertyFactory.circleColor(Expression.switchCase(Expression.get("approx"),
+                        Expression.color(0xFFFB8C00), Expression.color(0xFFE53935))),
+                PropertyFactory.circleStrokeColor("#FFFFFF"),
+                PropertyFactory.circleStrokeWidth(2f)));
     }
 
     private void moveTopControls(float down) {

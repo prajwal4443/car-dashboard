@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -115,6 +116,7 @@ public class DashboardActivity extends Activity {
     protected void onStart() {
         super.onStart();
         claimStartup();
+        CameraAlertService.update(this);
         if (map != null) map.start();
         MusicListener.watchTurns(MAPS_APP, turn -> {
             if (map != null) map.showTurn(turn);
@@ -158,7 +160,7 @@ public class DashboardActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, results);
         if (requestCode != DashboardMap.REQUEST_LOCATION) return;
         if (map != null && DashboardMap.hasLocationPermission(this)) map.onLocationAllowed();
-        DashboardMap.usePublicStorage(this, inPublicFolder -> { });
+        DashboardMap.usePublicStorage(this, inPublicFolder -> CameraAlertService.update(this));
     }
 
     @Override
@@ -377,13 +379,26 @@ public class DashboardActivity extends Activity {
         startApp(this, new Intent(this, DashboardAppsActivity.class));
     }
 
-    /** Hold the map card: allow what the map still needs (location, storage). */
+    /** Hold the map card: mark a speed camera where the car is, or allow what the map still needs. */
     private void showMapMenu(View anchor) {
-        if (map == null) return;
         PopupMenu menu = new PopupMenu(this, anchor);
-        menu.getMenu().add(R.string.dash_allow_location);
+        menu.getMenu().add(0, 1, 0, R.string.cam_mark_here);
+        if (map != null && !DashboardMap.hasLocationPermission(this)) menu.getMenu().add(0, 2, 0, R.string.dash_allow_location);
         menu.setOnMenuItemClickListener(item -> {
-            map.askForLocation();
+            if (item.getItemId() == 2) {
+                map.askForLocation();
+                return true;
+            }
+            Location here = DashboardMap.findLastLocation(this);
+            if (here == null) {
+                Toast.makeText(this, R.string.cam_no_position, Toast.LENGTH_LONG).show();
+            } else if (CameraStore.addMine(this, here.getLatitude(), here.getLongitude())) {
+                Toast.makeText(this, R.string.cam_marked, Toast.LENGTH_SHORT).show();
+                if (map != null) map.showCameras();
+                CameraAlertService.update(this);
+            } else {
+                Toast.makeText(this, R.string.cam_not_saved, Toast.LENGTH_LONG).show();
+            }
             return true;
         });
         menu.show();

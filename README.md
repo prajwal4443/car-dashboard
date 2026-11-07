@@ -1,7 +1,7 @@
 # Car Dashboard
 
-A car-style Home screen for Android head units (and phones): a live map, music, your apps, and maps that work **without internet**
-from areas you download.
+A car-style Home screen for Android head units (and phones): a live map, music, your apps, and speed camera alerts, with maps
+that work **without internet** from areas you download.
 
 Made for the many Android head units sold for cars (a full Android tablet behind the dashboard, Android 8 or newer).
 It is not an Android Auto or Android Automotive OS app.
@@ -14,13 +14,15 @@ It is not an Android Auto or Android Automotive OS app.
   blue, Light, White, or off.
 - **Map downloads**: pick a square on a map (up to about 40 × 40 km each); see the downloaded squares, delete them.
   On Android 10 and older they are kept in a public folder (`CarDashboard/maps`) and survive reinstalling the app.
+- **Speed camera alerts**: offline, from OpenStreetMap, your own marked cameras, and bundled radar zones; a spoken
+  warning before each.
 - **Startup music**: the music app plays (or shows its song) when the car starts.
 
 ## Install
 
 1. Download the APK from **Releases** (or build it, below) and install it on the head unit.
 2. Pick **Car Dashboard** as the Home app when Android asks (or later in Dashboard settings).
-3. Allow **location** (the map) and, for Now playing and the next-turn banner, **notification
+3. Allow **location** (the map, navigation, cameras) and, for Now playing and the next-turn banner, **notification
    access** (Dashboard settings shows the way).
 4. For offline use: **Dashboard settings → Download map area**, while online.
 
@@ -44,8 +46,9 @@ All code is in `app/src/main/java/com/prajwal/cardashboard`:
 | Home screen | `DashboardActivity`, `DashboardAppsActivity`, `DashboardSettingsActivity`, `HomeTiles`, `NowPlaying`, `DashboardWidget`, `CarStartup` |
 | Map | `DashboardMap`, `MapZoom` |
 | Map downloads | `MapArea`, `MapDownloads`, `MapAreaPickerActivity`, `SquareFrame` |
+| Speed cameras | `CameraAlertService`, `CameraAlerts`, `CameraStore` |
 
-Pure logic (zoom, map areas) is plain Java with unit tests in `app/src/test`.
+Pure logic (zoom, camera alerts, map areas) is plain Java with unit tests in `app/src/test`.
 
 ## Limits
 

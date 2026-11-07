@@ -98,7 +98,41 @@
     <string name="set_clear_map_confirm" translatable="false">Delete the saved map tiles? Places load again online.</string>
     <string name="set_map_dark_blue" translatable="false">Dark blue (OpenFreeMap Fiord)</string>
     <string name="set_map_light" translatable="false">Light (OpenFreeMap Liberty, like Google Maps)</string>
+    <string name="cam_alerts" translatable="false">Speed camera alerts</string>
+    <string name="cam_alerts_on" translatable="false">On · sound and notification near a camera, offline</string>
+    <string name="cam_distance" translatable="false">Alert distance</string>
+    <string name="cam_distance_value" translatable="false">%1$d m before the camera</string>
+    <string name="cam_list" translatable="false">Speed cameras</string>
+    <string name="cam_list_value" translatable="false">%1$d cameras: %2$d OpenStreetMap, %3$d Udupi police radar zones, %4$d marked by you · OpenStreetMap updated: %5$s</string>
+    <string name="cam_zone_title" translatable="false">Speed radar zone ahead</string>
+    <string name="cam_zone_text" translatable="false">%1$s · %2$s · police radar, position approximate</string>
+    <string name="cam_say_zone" translatable="false">Speed radar zone ahead. Limit %1$s</string>
+    <string name="cam_update" translatable="false">Update cameras from OpenStreetMap</string>
+    <string name="cam_update_detail" translatable="false">Downloads India\'s fixed cameras once (needs internet), then works offline</string>
+    <string name="cam_updating" translatable="false">Downloading speed cameras…</string>
+    <string name="cam_updated" translatable="false">%1$d speed cameras from OpenStreetMap saved</string>
+    <string name="cam_osm_busy" translatable="false">OpenStreetMap is busy, try again in a minute</string>
+    <string name="cam_update_failed" translatable="false">Camera update failed: %1$s</string>
+    <string name="cam_test" translatable="false">Test camera alert</string>
+    <string name="cam_test_detail" translatable="false">Plays the alert sound, voice and notification once</string>
+    <string name="cam_delete_mine" translatable="false">Delete my marked cameras</string>
+    <string name="cam_delete_mine_detail" translatable="false">%1$d cameras you marked by holding the map</string>
+    <string name="cam_delete_mine_confirm" translatable="false">Delete every camera you marked? OpenStreetMap\'s stay.</string>
+    <string name="cam_no_position" translatable="false">No GPS position yet: allow location and wait for the arrow on the map</string>
+    <string name="cam_mark_here" translatable="false">Mark speed camera here</string>
     <string name="dash_allow_location" translatable="false">Allow location for the map</string>
+    <string name="cam_marked" translatable="false">Speed camera marked: you\'ll be warned here</string>
+    <string name="cam_not_saved" translatable="false">Could not save the camera</string>
+    <string name="cam_channel_running" translatable="false">Speed camera alerts running</string>
+    <string name="cam_channel_alerts" translatable="false">Speed camera alerts</string>
+    <string name="cam_running_title" translatable="false">Speed camera alerts on</string>
+    <string name="cam_running_text" translatable="false">Watching %1$d cameras</string>
+    <string name="cam_alert_title" translatable="false">Speed camera in %1$d m</string>
+    <string name="cam_alert_limit" translatable="false">Limit %1$s km/h</string>
+    <string name="cam_alert_fixed" translatable="false">Fixed speed camera ahead</string>
+    <string name="cam_alert_mine" translatable="false">Camera you marked</string>
+    <string name="cam_say" translatable="false">Speed camera ahead</string>
+    <string name="cam_say_limit" translatable="false">Speed camera ahead. Limit %1$s</string>
     <string name="set_map_storage" translatable="false">Map storage</string>
     <string name="set_map_storage_public" translatable="false">CarDashboard/maps folder · kept if the app is uninstalled</string>
     <string name="set_map_storage_ask" translatable="false">Inside the app (deleted on uninstall) · tap to allow Storage and keep maps</string>

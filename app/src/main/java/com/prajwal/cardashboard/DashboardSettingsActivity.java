@@ -75,6 +75,7 @@ public class DashboardSettingsActivity extends Activity {
                     : null);
             addMapDownloadRows();
         }
+        addCameraRows();
         addRow(R.string.set_maps_app, describeApp(DashboardActivity.MAPS_APP), null);
         int homeApps = DashboardActivity.buildHomePackages(this, DashboardActivity.findLaunchableApps(pm)).size();
         addRow(R.string.set_home_apps, getString(R.string.set_home_apps_value, homeApps), null);
@@ -175,6 +176,57 @@ public class DashboardSettingsActivity extends Activity {
                 rows.addView(row, at++);
             }
         });
+    }
+
+    /** Speed camera alerts: on/off, distance, what the list holds, and keeping it up to date. */
+    private void addCameraRows() {
+        boolean on = CameraAlertService.isOn(this);
+        addRow(R.string.cam_alerts, getString(on ? R.string.cam_alerts_on : R.string.set_off), v -> {
+            CameraAlertService.saveOn(this, !on);
+            CameraAlertService.update(this);
+            showRows();
+        });
+        int meters = CameraAlertService.lookupAlertMeters(this);
+        addRow(R.string.cam_distance, getString(R.string.cam_distance_value, meters), v -> pickAlertDistance());
+        int all = CameraStore.load(this).size();
+        int mine = CameraStore.countMine(this);
+        String updated = CameraStore.lookupUpdated(this);
+        int known = CameraStore.countKnown(this);
+        addRow(R.string.cam_list, getString(R.string.cam_list_value, all, all - mine - known, known, mine,
+                updated != null ? updated : getString(R.string.set_not_yet)), null);
+        addRow(R.string.cam_update, getString(R.string.cam_update_detail), v -> {
+            toast(R.string.cam_updating);
+            CameraStore.updateFromOsm(this, error -> {
+                if (isFinishing()) return;
+                Toast.makeText(this, error == null
+                        ? getString(R.string.cam_updated, CameraStore.load(this).size() - CameraStore.countMine(this))
+                        : getString(R.string.cam_update_failed, error), Toast.LENGTH_LONG).show();
+                CameraAlertService.update(this);
+                showRows();
+            });
+        });
+        addRow(R.string.cam_test, getString(R.string.cam_test_detail), v -> CameraAlertService.sendTest(this));
+        if (mine > 0) {
+            addRow(R.string.cam_delete_mine, getString(R.string.cam_delete_mine_detail, mine),
+                    v -> confirm(R.string.cam_delete_mine_confirm, () -> {
+                        CameraStore.deleteMine(this);
+                        CameraAlertService.update(this);
+                        done(R.string.set_done);
+                    }));
+        }
+    }
+
+    private void pickAlertDistance() {
+        int[] choices = {50, 100, 200, 300};
+        CharSequence[] names = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) names[i] = getString(R.string.cam_distance_value, choices[i]);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.cam_distance)
+                .setItems(names, (dialog, which) -> {
+                    CameraAlertService.saveAlertMeters(this, choices[which]);
+                    showRows();
+                })
+                .show();
     }
 
     @Override

@@ -1,0 +1,41 @@
+{
+ "source": "Udupi district police, speed radar cameras live from 22 May 2026 (Mangalore Today, Daijiworld, NewsKarnataka). Positions: the named place, snapped to the highway in OpenStreetMap; approximate.",
+ "cameras": [
+  {
+   "name": "Uchila, Padubidri",
+   "lat": 13.18581,
+   "lon": 74.75603,
+   "maxspeed": "80"
+  },
+  {
+   "name": "Kaup (Dandatheertha School)",
+   "lat": 13.22659,
+   "lon": 74.74825,
+   "maxspeed": "80"
+  },
+  {
+   "name": "Thekkatte, Kota",
+   "lat": 13.55055,
+   "lon": 74.70143,
+   "maxspeed": "80"
+  },
+  {
+   "name": "Trasi, Gangolli",
+   "lat": 13.69024,
+   "lon": 74.65218,
+   "maxspeed": "80"
+  },
+  {
+   "name": "Nayakanakatte/Kergal, Byndoor",
+   "lat": 13.81394,
+   "lon": 74.63507,
+   "maxspeed": "80"
+  },
+  {
+   "name": "Doopadakatte, Karkala",
+   "lat": 13.19442,
+   "lon": 74.97153,
+   "maxspeed": "60"
+  }
+ ]
+}
