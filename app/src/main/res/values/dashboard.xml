@@ -56,6 +56,27 @@
     <string name="set_last_startup" translatable="false">Last startup</string>
     <string name="set_song_info" translatable="false">Song info (notification access)</string>
     <string name="set_maps_app" translatable="false">Maps app</string>
+    <string name="set_autoplay" translatable="false">AutoPlay on Home</string>
+    <string name="set_autoplay_shown" translatable="false">Shown · CarPlay and Android Auto, tap to hide</string>
+    <string name="set_autoplay_hidden" translatable="false">Hidden · tap to show</string>
+    <string name="set_autoplay_app" translatable="false">AutoPlay app</string>
+    <string name="set_autoplay_app_value" translatable="false">CarLink %1$s · tap to open</string>
+    <string name="set_autoplay_app_missing" translatable="false">CarLink not installed · tap to install</string>
+    <string name="autoplay_name" translatable="false">AutoPlay</string>
+    <string name="autoplay_install_title" translatable="false">Install AutoPlay</string>
+    <string name="autoplay_install_question" translatable="false">AutoPlay uses the free, open-source CarLink app for CarPlay and Android Auto. Download the latest CarLink from GitHub (about 17 MB) and install it?</string>
+    <string name="autoplay_install" translatable="false">Install</string>
+    <string name="autoplay_install_running" translatable="false">CarLink is already being installed</string>
+    <string name="autoplay_install_allow" translatable="false">First, allow Car Dashboard to install apps: turn on \"Allow apps from this source\" on the next screen, then come back. The install starts by itself, and Android asks you to confirm it.</string>
+    <string name="autoplay_install_open_setting" translatable="false">Open setting</string>
+    <string name="autoplay_install_not_allowed" translatable="false">Installing apps isn\'t allowed for Car Dashboard yet, so CarLink wasn\'t installed</string>
+    <string name="autoplay_install_finding" translatable="false">Finding the latest CarLink…</string>
+    <string name="autoplay_install_downloading" translatable="false">Downloading CarLink %1$s…</string>
+    <string name="autoplay_install_handing_over" translatable="false">Checked. Opening Android\'s installer…</string>
+    <string name="autoplay_install_failed" translatable="false">CarLink was not installed: %1$s</string>
+    <string name="autoplay_install_failed_plain" translatable="false">CarLink was not installed</string>
+    <string name="autoplay_installed" translatable="false">CarLink installed: tap AutoPlay to set it up</string>
+    <string name="autoplay_hidden_hint" translatable="false">AutoPlay hidden. Show it again in Dashboard settings</string>
     <string name="set_home_apps" translatable="false">Home apps</string>
     <string name="set_home_apps_value" translatable="false">%1$d on the Home row</string>
     <string name="set_widget" translatable="false">Widget</string>

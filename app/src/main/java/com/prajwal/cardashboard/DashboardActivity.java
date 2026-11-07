@@ -43,6 +43,7 @@ import java.util.Map;
  *
  * Home apps: the apps added with "Add to Home" (HomeTiles), minus the ones removed. Hold an app to remove it; add
  * apps from All apps (DashboardAppsActivity). Maps: MAPS_APP, unless a trip of our own runs (NavigationActivity).
+ * First in the row, unless hidden in Dashboard settings: AutoPlay (CarPlay and Android Auto, the CarLink app).
  */
 public class DashboardActivity extends Activity {
     static final String TAG = "CarDash.Dashboard";
@@ -141,6 +142,7 @@ public class DashboardActivity extends Activity {
         super.onResume();
         resumed = true;
         runPendingStartup();
+        AutoPlay.resumeInstall(this);
         showGreeting();
         showCardOrWidget();   // the widget may have been taken off in dashboard settings
         fillTiles();
@@ -316,7 +318,10 @@ public class DashboardActivity extends Activity {
         return launchable;
     }
 
-    /** The Home apps in order: the added apps by name; never this app or the Maps app (the map card is Maps). */
+    /**
+     * The Home apps in order: the added apps by name; never this app or the Maps app (the map card is Maps), nor
+     * CarLink while the AutoPlay tile stands for it.
+     */
     static List<String> buildHomePackages(Context context, Map<String, ResolveInfo> launchable) {
         PackageManager pm = context.getPackageManager();
         Map<String, String> labels = new HashMap<>();
@@ -326,8 +331,10 @@ public class DashboardActivity extends Activity {
             labels.put(pkg, app != null ? app.loadLabel(pm).toString() : pkg);
         }
         picks.sort((a, b) -> labels.get(a).compareToIgnoreCase(labels.get(b)));
+        List<String> never = new ArrayList<>(Arrays.asList(context.getPackageName(), MAPS_APP));
+        if (AutoPlay.isOnHome(context)) never.add(AutoPlay.CARLINK_PACKAGE);
         return DashboardApps.pickTilePackages(picks, launchable.keySet(), HomeTiles.loadRemoved(context),
-                Arrays.asList(context.getPackageName(), MAPS_APP), MAX_HOME_APPS);
+                never, MAX_HOME_APPS);
     }
 
     /** Adds or removes an app from Home, with a message when the choice could not be saved. */
@@ -365,6 +372,7 @@ public class DashboardActivity extends Activity {
         PackageManager pm = getPackageManager();
         Map<String, ResolveInfo> launchable = findLaunchableApps(pm);
         tiles.removeAllViews();
+        if (AutoPlay.isOnHome(this)) addAutoPlayTile();
         for (String pkg : buildHomePackages(this, launchable)) {
             ResolveInfo app = launchable.get(pkg);
             View tile = addTile(app.loadIcon(pm), app.loadLabel(pm));
@@ -374,6 +382,27 @@ public class DashboardActivity extends Activity {
                 return true;
             });
         }
+    }
+
+    /** AutoPlay opens CarLink; hold it to take it off Home (Dashboard settings brings it back). */
+    private void addAutoPlayTile() {
+        View tile = addTile(getDrawable(R.drawable.ic_autoplay), getString(R.string.autoplay_name));
+        tile.setOnClickListener(v -> AutoPlay.open(this));
+        tile.setOnLongClickListener(v -> {
+            PopupMenu menu = new PopupMenu(this, v);
+            menu.getMenu().add(R.string.dash_remove_home);
+            menu.setOnMenuItemClickListener(item -> {
+                if (AutoPlay.saveOnHome(this, false)) {
+                    Toast.makeText(this, R.string.autoplay_hidden_hint, Toast.LENGTH_LONG).show();
+                    fillTiles();
+                } else {
+                    Toast.makeText(this, R.string.home_save_failed, Toast.LENGTH_LONG).show();
+                }
+                return true;
+            });
+            menu.show();
+            return true;
+        });
     }
 
     private View addTile(Drawable icon, CharSequence label) {

@@ -13,7 +13,8 @@ import java.util.function.Consumer;
 /**
  * Notification access for the car dashboard ("Dashboard music"):
  * - the Now playing card: Android only lists other apps' media sessions to an enabled notification listener;
- * - the map's next-turn banner: the navigation app's own navigation notification (only MAPS_APP's, nothing else).
+ * - the map's next-turn banner: the navigation app's own navigation notification (only MAPS_APP's, nothing else);
+ * - AutoPlay: whether CarLink is projecting a phone, from its session notification (only CarLink's).
  *
  * Enable it in Settings, Apps, Special app access, Notification access.
  */
@@ -52,6 +53,10 @@ public class MusicListener extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification posted) {
+        if (AutoPlay.CARLINK_PACKAGE.equals(posted.getPackageName())) {
+            AutoPlay.trackNotification(this, posted.getKey(), posted.getNotification(), true);
+            return;
+        }
         if (!isNavigation(posted)) return;
         Bundle extras = posted.getNotification().extras;
         CharSequence distance = extras.getCharSequence(Notification.EXTRA_TITLE);
@@ -62,6 +67,10 @@ public class MusicListener extends NotificationListenerService {
 
     @Override
     public void onNotificationRemoved(StatusBarNotification removed) {
+        if (AutoPlay.CARLINK_PACKAGE.equals(removed.getPackageName())) {
+            AutoPlay.trackNotification(this, removed.getKey(), removed.getNotification(), false);
+            return;
+        }
         if (isNavigation(removed)) publish(null);
     }
 

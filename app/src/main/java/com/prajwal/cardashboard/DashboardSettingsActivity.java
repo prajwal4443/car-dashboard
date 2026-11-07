@@ -49,6 +49,7 @@ public class DashboardSettingsActivity extends Activity {
         super.onResume();
         MapDownloads.watch(() -> runOnUiThread(this::showRows));
         showRows();
+        AutoPlay.resumeInstall(this);
     }
 
     private void showRows() {
@@ -77,6 +78,7 @@ public class DashboardSettingsActivity extends Activity {
         }
         addCameraRows();
         addRow(R.string.set_maps_app, describeApp(DashboardActivity.MAPS_APP), null);
+        addAutoPlayRows();
         int homeApps = DashboardActivity.buildHomePackages(this, DashboardActivity.findLaunchableApps(pm)).size();
         addRow(R.string.set_home_apps, getString(R.string.set_home_apps_value, homeApps), null);
         String widget = DashboardWidget.describePicked(this);
@@ -124,6 +126,18 @@ public class DashboardSettingsActivity extends Activity {
             version = "?";
         }
         addRow(R.string.set_version, version, null);
+    }
+
+    /** AutoPlay's tile shown or hidden on Home (a tap switches it), and the CarLink app it opens. */
+    private void addAutoPlayRows() {
+        boolean onHome = AutoPlay.isOnHome(this);
+        addRow(R.string.set_autoplay, getString(onHome ? R.string.set_autoplay_shown : R.string.set_autoplay_hidden), v -> {
+            if (!AutoPlay.saveOnHome(this, !onHome)) toast(R.string.home_save_failed);
+            showRows();
+        });
+        String carLink = AutoPlay.lookupInstalledVersion(this);
+        addRow(R.string.set_autoplay_app, carLink != null ? getString(R.string.set_autoplay_app_value, carLink)
+                : getString(R.string.set_autoplay_app_missing), v -> AutoPlay.open(this));
     }
 
     private void pickMapStyle() {

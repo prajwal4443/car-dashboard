@@ -14,6 +14,7 @@ import java.util.Locale;
 /**
  * Navigation's voice (TripGuide's turns): Android's text to speech as navigation guidance, music lowered while it
  * speaks (audio focus, may duck). Muted or not is kept between trips (the speaker button on the navigation screen).
+ * Quiet while AutoPlay projects a phone, whose own navigation speaks then; speed camera alerts have their own voice.
  */
 final class VoiceGuide {
     private static final String TAG = "CarDash.Voice";
@@ -44,9 +45,13 @@ final class VoiceGuide {
         if (muted) stopSpeaking();
     }
 
-    /** Says {@code text} now, over anything still being said; nothing while muted. */
+    /** Says {@code text} now, over anything still being said; nothing while muted or while AutoPlay projects a phone. */
     static void speak(Context context, String text) {
         if (isMuted(context)) return;
+        if (AutoPlay.isSessionRunning()) {
+            Log.i(TAG, "quiet during AutoPlay: " + text);
+            return;
+        }
         Context app = context.getApplicationContext();
         if (voice == null) {
             audio = app.getSystemService(AudioManager.class);

@@ -23,6 +23,8 @@ It is not an Android Auto or Android Automotive OS app.
 - **Speed camera alerts**: offline, from OpenStreetMap, your own marked cameras, and bundled radar zones; a spoken
   warning before each.
 - **Startup music**: the music app plays (or shows its song) when the car starts.
+- **AutoPlay**: CarPlay and Android Auto from a Home tile, through the separate [CarLink](https://github.com/F-e-n-y-x/CarLink)
+  app. Speed camera alerts keep running over it; our navigation's voice is quiet while a phone is projected.
 
 ## Install
 
@@ -33,6 +35,11 @@ It is not an Android Auto or Android Automotive OS app.
 3. Allow **location** (the map, navigation, cameras) and, for Now playing and the next-turn banner, **notification
    access** (Dashboard settings shows the way).
 4. For offline use: **Dashboard settings → Download map area**, while online.
+5. For AutoPlay (optional): tap **AutoPlay** on Home. It downloads the latest [CarLink](https://github.com/F-e-n-y-x/CarLink)
+   from CarLink's own GitHub release, checks its checksum and signing key, and Android asks you to confirm the
+   install (the first time, allow Car Dashboard to install apps). Go through CarLink's setup. In CarLink's settings, turn **Start with the car** off: with no phone connected, the car then starts on
+   this dashboard, and CarLink comes to the front by itself when a phone connects (Bluetooth or USB). On a tablet,
+   which phones don't reconnect to by Bluetooth, tap AutoPlay once per drive. Hide the tile in Dashboard settings.
 
 ## Build
 
@@ -57,6 +64,7 @@ All code is in `app/src/main/java/com/prajwal/cardashboard`:
 | Search | `PlaceSearchActivity`, `PlaceIndex`, `OnlineSearch`, `VectorTileReader`, `PlaceIndexService` |
 | Navigation | `NavigationActivity`, `TripGuide`, `DrivingRoute`, `RouteFinder` (online), `OfflineRouter` + `RoadGraph` (offline), `TurnAnnouncer`, `VoiceGuide` |
 | Speed cameras | `CameraAlertService`, `CameraAlerts`, `CameraStore` |
+| AutoPlay | `AutoPlay` (opens CarLink; `MusicListener` notices a projected phone from CarLink's notification) |
 
 Pure logic (routing, search, turns, zoom, camera alerts) is plain Java with unit tests in `app/src/test`, several on
 real map tiles (`app/src/test/resources`).

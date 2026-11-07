@@ -9,10 +9,14 @@ Car Dashboard is MIT licensed (see `LICENSE`). It uses, or was built with, the f
   back to that project.
 - **Outfit** font (`app/src/main/res/font/outfit.ttf`), SIL Open Font License 1.1, Copyright 2021 The Outfit Project
   Authors. See `FONT-LICENSE-OFL.txt`.
-- **Material Design icons** (Google), Apache License 2.0: the vector icons in `app/src/main/res/drawable/ic_*.xml`.
+- **Material Design icons** (Google), Apache License 2.0: the vector icons in `app/src/main/res/drawable/ic_*.xml`,
+  except `ic_autoplay.xml` (Car Dashboard's own).
 - **MapLibre Native for Android**, BSD 2-Clause License.
 - **OkHttp**, Apache License 2.0.
 - **Gradle wrapper** (`gradlew`, `gradle/wrapper`), Apache License 2.0.
+- **CarLink** (https://github.com/F-e-n-y-x/CarLink), AGPL-3.0: AutoPlay opens it as a separate app, installed by
+  the user. None of its code is in Car Dashboard, and Car Dashboard doesn't ship it: the AutoPlay button downloads it
+  from CarLink's own GitHub release. Car Dashboard reads its session notification and one of its strings at run time.
 
 ## Data and services
 

@@ -22,6 +22,8 @@
          where apps may still write there (requestLegacyExternalStorage below). -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+    <!-- AutoPlay: installs the CarLink app from its GitHub release (CarLinkInstaller); Android asks the user each time. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <queries>
         <!-- The apps for the Home tiles and All apps. -->
@@ -141,5 +143,10 @@
             android:name=".CameraAlertService"
             android:exported="false"
             android:foregroundServiceType="location" />
+
+        <!-- Android's answers while installing CarLink for AutoPlay (CarLinkInstaller). -->
+        <receiver
+            android:name=".CarLinkInstallReceiver"
+            android:exported="false" />
     </application>
 </manifest>
