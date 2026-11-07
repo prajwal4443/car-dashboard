@@ -48,6 +48,8 @@ public class DashboardActivity extends Activity {
     static final String TAG = "CarDash.Dashboard";
     /** The navigation app the map card opens, and whose turn notifications show on it. */
     static final String MAPS_APP = "com.google.android.apps.maps";
+    /** Place search's answer (PlaceSearchActivity). */
+    private static final int REQUEST_SEARCH = 4301;
     /** At most this many Home apps; the row scrolls sideways past the first few. */
     private static final int MAX_HOME_APPS = 24;
     /** Startup waits this long after Home is back on screen, for audio and the music app to be ready. */
@@ -95,6 +97,8 @@ public class DashboardActivity extends Activity {
         } catch (RuntimeException | LinkageError e) {
             Log.w(TAG, "live map off", e);   // the picture stays
         }
+        findViewById(R.id.dashSearch).setOnClickListener(v ->
+                startActivityForResult(new Intent(this, PlaceSearchActivity.class), REQUEST_SEARCH));
         findViewById(R.id.dashAllApps).setOnClickListener(v -> openAllApps());
         card = findViewById(R.id.nowPlaying);
         widgetArea = findViewById(R.id.dashWidgetArea);
@@ -166,6 +170,13 @@ public class DashboardActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (widget != null && widget.handleResult(requestCode, resultCode)) return;
+        if (requestCode == REQUEST_SEARCH) {
+            if (resultCode == RESULT_OK && data != null) {
+                openMapsTo(data.getDoubleExtra(PlaceSearchActivity.EXTRA_LAT, 0),
+                        data.getDoubleExtra(PlaceSearchActivity.EXTRA_LON, 0));
+            }
+            return;
+        }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
@@ -402,6 +413,13 @@ public class DashboardActivity extends Activity {
             return true;
         });
         menu.show();
+    }
+
+    /** A place picked in search: the navigation app's route to it. */
+    private void openMapsTo(double lat, double lon) {
+        Intent route = new Intent(Intent.ACTION_VIEW,
+                android.net.Uri.parse(String.format(Locale.ROOT, "google.navigation:q=%.6f,%.6f", lat, lon)));
+        startApp(this, route.setPackage(MAPS_APP));
     }
 
     /** The Maps card: the navigation app, full screen. */

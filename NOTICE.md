@@ -16,9 +16,11 @@ Car Dashboard is MIT licensed (see `LICENSE`). It uses, or was built with, the f
 
 ## Data and services
 
-- **OpenStreetMap** data, © OpenStreetMap contributors, Open Database License (ODbL). It is in the map tiles. The map shows its credit line; keep it visible.
+- **OpenStreetMap** data, © OpenStreetMap contributors, Open Database License (ODbL). It is in the map tiles and in place
+  search. The map shows its credit line; keep it visible.
 - **OpenFreeMap** (https://openfreemap.org): the map tiles and styles, free to use; downloads follow its limit of
-  3,000 tiles per download and 4 parallel requests.
+  3,000 tiles per download and 4 parallel requests. The test tiles in `app/src/test/resources` come from it.
+- **Photon** (https://photon.komoot.io): online place search, fair use.
 - **Overpass API**: speed cameras from OpenStreetMap, when updated from Dashboard settings.
 - `app/src/main/res/raw/known_cameras.json`: police radar zones near Udupi, Karnataka, placed from public news
   reports; positions are approximate.

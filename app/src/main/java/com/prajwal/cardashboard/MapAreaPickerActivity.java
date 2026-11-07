@@ -145,6 +145,7 @@ public class MapAreaPickerActivity extends Activity {
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setMessage(R.string.set_delete_area_confirm)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> MapDownloads.deleteArea(shownArea, () -> {
+                    PlaceIndexService.rebuild(this);   // its places leave offline search
                     Toast.makeText(this, R.string.pick_deleted, Toast.LENGTH_SHORT).show();
                     finish();
                 }))

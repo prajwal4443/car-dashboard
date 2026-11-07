@@ -116,6 +116,17 @@
     <string name="cam_test" translatable="false">Test camera alert</string>
     <string name="cam_test_detail" translatable="false">Plays the alert sound, voice and notification once</string>
     <string name="cam_delete_mine" translatable="false">Delete my marked cameras</string>
+    <string name="search_title" translatable="false">Search places</string>
+    <string name="search_hint" translatable="false">Search places, petrol, temple, hospital…</string>
+    <string name="search_loading" translatable="false">Loading the downloaded maps…</string>
+    <string name="search_online_and_offline" translatable="false">Online, and %1$d places in your downloaded maps</string>
+    <string name="search_offline_only" translatable="false">Offline · searching %1$d places in your downloaded maps</string>
+    <string name="search_online_only" translatable="false">Online · download a map area in Dashboard settings to also search offline</string>
+    <string name="search_no_index" translatable="false">Offline, and no downloaded map to search yet: download a map area in Dashboard settings</string>
+    <string name="search_online_heading" translatable="false">Online</string>
+    <string name="search_offline_heading" translatable="false">Downloaded maps</string>
+    <string name="search_nothing" translatable="false">Nothing found for “%1$s”</string>
+    <string name="search_near" translatable="false">near %1$s</string>
     <string name="cam_delete_mine_detail" translatable="false">%1$d cameras you marked by holding the map</string>
     <string name="cam_delete_mine_confirm" translatable="false">Delete every camera you marked? OpenStreetMap\'s stay.</string>
     <string name="cam_no_position" translatable="false">No GPS position yet: allow location and wait for the arrow on the map</string>

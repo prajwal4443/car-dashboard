@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Place search (PlaceSearchActivity): the search box, where it searches, and the results. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/dash_pad"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/searchQuery"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:background="@drawable/search_field_bg"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="10dp"
+            android:hint="@string/search_hint"
+            android:importantForAutofill="no"
+            android:imeOptions="actionSearch|flagNoExtractUi|flagNoFullscreen"
+            android:inputType="text"
+            android:singleLine="true"
+            android:textColor="@color/dash_text"
+            android:textColorHint="@color/dash_text_dim"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/searchCancel"
+            style="@style/PillButton"
+            android:text="@android:string/cancel" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/searchStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="4dp"
+        android:textColor="@color/dash_text_dim"
+        android:textSize="13sp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/searchResults"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>

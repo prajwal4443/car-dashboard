@@ -111,6 +111,7 @@ final class MapDownloads {
             @Override
             public void done(String error) {
                 percent = -1;
+                PlaceIndexService.rebuild(app);   // search the new area offline
                 android.widget.Toast.makeText(app, error == null ? app.getString(R.string.set_download_done)
                         : app.getString(R.string.set_download_failed, error), android.widget.Toast.LENGTH_LONG).show();
                 notifyWatcher();

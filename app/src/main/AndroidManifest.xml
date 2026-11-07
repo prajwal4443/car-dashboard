@@ -6,7 +6,7 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 
-    <!-- Maps online; online and offline state. -->
+    <!-- Maps and place search online; online and offline state. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- The car on the map, zoom by speed, navigation, speed camera alerts. -->
@@ -87,6 +87,14 @@
             android:excludeFromRecents="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|uiMode" />
 
+        <!-- Place search (the map card's search button). -->
+        <activity
+            android:name=".PlaceSearchActivity"
+            android:label="@string/search_title"
+            android:exported="false"
+            android:windowSoftInputMode="stateVisible|adjustResize"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|uiMode" />
+
         <!-- Download map area: pick the square on a map; or show a downloaded one. -->
         <activity
             android:name=".MapAreaPickerActivity"
@@ -102,6 +110,13 @@
             android:taskAffinity="com.prajwal.cardashboard.settings"
             android:excludeFromRecents="true"
             android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|uiMode" />
+
+        <!-- Builds offline search from the downloaded maps, in its own process: MapLibre's bundled SQLite and
+             Android's must not open the map database in the same process (PlaceIndexService). -->
+        <service
+            android:name=".PlaceIndexService"
+            android:exported="false"
+            android:process=":search" />
 
         <!-- Notification access: other apps' media sessions (Now playing) and the navigation app's next turn. -->
         <service

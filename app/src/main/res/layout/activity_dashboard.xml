@@ -145,6 +145,17 @@
                 android:fontFamily="@font/outfit_medium"
                 android:visibility="gone" />
 
+            <!-- Place search (PlaceSearchActivity). -->
+            <ImageButton
+                android:id="@+id/dashSearch"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="top|end"
+                android:layout_margin="10dp"
+                android:background="@drawable/dash_speed_bg"
+                android:contentDescription="@string/search_title"
+                android:src="@drawable/ic_search" />
+
             <!-- The navigation app's next turn, from its notification (MusicListener). -->
             <LinearLayout
                 android:id="@+id/dashTurn"

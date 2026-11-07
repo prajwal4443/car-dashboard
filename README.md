@@ -1,7 +1,7 @@
 # Car Dashboard
 
-A car-style Home screen for Android head units (and phones): a live map, music, your apps, and speed camera alerts, with maps
-that work **without internet** from areas you download.
+A car-style Home screen for Android head units (and phones): a live map, music, your apps, and place search that also
+works **without internet** from map areas you download.
 
 Made for the many Android head units sold for cars (a full Android tablet behind the dashboard, Android 8 or newer).
 It is not an Android Auto or Android Automotive OS app.
@@ -12,6 +12,8 @@ It is not an Android Auto or Android Automotive OS app.
   tinted from the art), big tiles for your apps, and All apps. Hold a tile to remove it; add apps from All apps.
 - **Live map**: follows the car with a navigation arrow, zooms out with speed, shows your speed. Map styles: Dark, Dark
   blue, Light, White, or off.
+- **Place search**: online (Photon) and **offline** from the downloaded maps: towns and villages, petrol pumps,
+  temples, hospitals, hotels and more by name or kind ("petrol", "temple").
 - **Map downloads**: pick a square on a map (up to about 40 × 40 km each); see the downloaded squares, delete them.
   On Android 10 and older they are kept in a public folder (`CarDashboard/maps`) and survive reinstalling the app.
 - **Speed camera alerts**: offline, from OpenStreetMap, your own marked cameras, and bundled radar zones; a spoken
@@ -46,13 +48,20 @@ All code is in `app/src/main/java/com/prajwal/cardashboard`:
 | Home screen | `DashboardActivity`, `DashboardAppsActivity`, `DashboardSettingsActivity`, `HomeTiles`, `NowPlaying`, `DashboardWidget`, `CarStartup` |
 | Map | `DashboardMap`, `MapZoom` |
 | Map downloads | `MapArea`, `MapDownloads`, `MapAreaPickerActivity`, `SquareFrame` |
+| Search | `PlaceSearchActivity`, `PlaceIndex`, `OnlineSearch`, `VectorTileReader`, `PlaceIndexService` |
 | Speed cameras | `CameraAlertService`, `CameraAlerts`, `CameraStore` |
 
-Pure logic (zoom, camera alerts, map areas) is plain Java with unit tests in `app/src/test`.
+Pure logic (search, turns, zoom, camera alerts) is plain Java with unit tests in `app/src/test`, one on
+a real map tile (`app/src/test/resources`).
+
+Offline search reads the downloaded vector tiles from MapLibre's offline database. That happens in a
+separate process (`PlaceIndexService`), because MapLibre bundles its own SQLite and two copies must not open one file
+in the same process.
 
 ## Limits
 
-- OpenFreeMap are free community services: use them fairly.
+- House addresses are rarely in OpenStreetMap for India: search finds places, roads and points of interest.
+- The online services (Photon, OpenFreeMap) are free community services: use them fairly.
 
 ## Contributing
 

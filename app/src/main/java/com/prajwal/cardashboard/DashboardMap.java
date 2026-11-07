@@ -105,6 +105,8 @@ final class DashboardMap {
     private final TextView turnText;
     /** The car's speed in the map's top left corner (km/h), shown once the GPS gives one. */
     private final TextView speed;
+    /** The search button: moves under the turn banner with the other top controls. */
+    private final View searchButton;
     private MapView mapView;
     private MapLibreMap map;
     /** The car's speed, for MapZoom: from the GPS while the map is on screen. */
@@ -146,6 +148,7 @@ final class DashboardMap {
         turnDistance = card.findViewById(R.id.dashTurnDistance);
         turnText = card.findViewById(R.id.dashTurnText);
         speed = card.findViewById(R.id.dashSpeed);
+        searchButton = card.findViewById(R.id.dashSearch);
         prepare(activity);
     }
 
@@ -537,6 +540,7 @@ final class DashboardMap {
 
     private void moveTopControls(float down) {
         speed.setTranslationY(down);
+        searchButton.setTranslationY(down);
     }
 
     /** The newest position any provider knows, or null (also without location allowed). */
