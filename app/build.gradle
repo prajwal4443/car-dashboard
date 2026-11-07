@@ -1,0 +1,45 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.prajwal.cardashboard'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.prajwal.cardashboard'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        // A date-and-time stamp (UTC) after the version, shown in Dashboard settings, to tell builds apart.
+        versionName '1.0.' + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern('yyMMdd.HHmm'))
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // Installed by hand (no store): signed with the debug key, so a release installs over a debug build.
+            // For a store or shared releases, sign with your own key, kept out of the repository.
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    packagingOptions {
+        resources {
+            // Kotlin metadata from AndroidX's dependencies; this app is plain Java and never reads it.
+            excludes += ['kotlin/**', 'META-INF/*.version', 'META-INF/*.kotlin_module', 'DebugProbesKt.bin']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    // Tests only, never in the APK: plain JVM tests (src/test).
+    testImplementation 'junit:junit:4.13.2'
+}

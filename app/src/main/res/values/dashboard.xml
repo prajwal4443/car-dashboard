@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The car dashboard Home (DashboardActivity, NowPlaying). English only for now. -->
+<resources>
+    <!-- The app. -->
+    <string name="app_name" translatable="false">Car Dashboard</string>
+    <color name="launcher_background">#FF1E63E9</color>
+    <string name="settings" translatable="false">Settings</string>
+    <string name="cant_open" translatable="false">Can\'t open %1$s</string>
+    <string name="good_morning" translatable="false">Good morning</string>
+    <string name="good_afternoon" translatable="false">Good afternoon</string>
+    <string name="good_evening" translatable="false">Good evening</string>
+    <string name="home_save_failed" translatable="false">Could not save the Home apps</string>
+
+    <string name="dash_home_name" translatable="false">Car dashboard</string>
+    <string name="dash_all_apps" translatable="false">All apps</string>
+    <string name="dash_maps" translatable="false">Maps</string>
+    <string name="np_heading" translatable="false">NOW PLAYING</string>
+    <string name="np_nothing_playing" translatable="false">Nothing playing</string>
+    <string name="np_play" translatable="false">Play</string>
+    <string name="np_pause" translatable="false">Pause</string>
+    <string name="np_previous" translatable="false">Previous track</string>
+    <string name="np_next" translatable="false">Next track</string>
+    <string name="np_access" translatable="false">Tap to show song info: allow notification access for Dashboard music</string>
+    <string name="dash_add_home" translatable="false">Add to Home</string>
+    <string name="dash_remove_home" translatable="false">Remove from Home</string>
+    <string name="dash_done" translatable="false">Done</string>
+    <string name="dash_apps_count" translatable="false">%1$d apps · hold an app to add it to Home or remove it</string>
+    <string name="dash_clear" translatable="false">Clear</string>
+    <string name="dash_cleared" translatable="false">Background apps cleared · %1$s freed</string>
+    <string name="dash_cleared_plain" translatable="false">Background apps cleared</string>
+    <string name="np_startup_pick" translatable="false">Play %1$s when the car starts</string>
+    <string name="np_startup_off" translatable="false">Stop playing %1$s at startup</string>
+    <string name="np_startup_hint" translatable="false">Play a song first, then hold it here to play that app when the car starts</string>
+    <string name="np_startup_saved" translatable="false">%1$s will play when the car starts</string>
+    <string name="np_startup_cleared" translatable="false">No music at startup</string>
+    <string name="np_use_widget" translatable="false">Use a widget here instead</string>
+    <string name="dash_widget_pick_title" translatable="false">Pick a widget</string>
+    <string name="dash_widget_change" translatable="false">Change widget</string>
+    <string name="dash_widget_remove" translatable="false">Show Now playing instead</string>
+    <string name="dash_widget_menu" translatable="false">Widget options</string>
+    <string name="dash_widget_none" translatable="false">No app on this unit offers a widget</string>
+    <string name="dash_widget_not_allowed" translatable="false">This unit does not let launchers add widgets</string>
+    <string name="np_startup_last_run" translatable="false">Last startup: %1$s</string>
+    <string name="startup_played" translatable="false">played (%1$s)</string>
+    <string name="startup_via_session" translatable="false">its player</string>
+    <string name="startup_via_browser" translatable="false">its media service</string>
+    <string name="startup_via_button" translatable="false">play button</string>
+    <string name="startup_opened_played" translatable="false">opened the app, then played</string>
+    <string name="startup_opened_only" translatable="false">opened the app, but its player never appeared</string>
+    <string name="startup_failed" translatable="false">could not open the music app</string>
+    <string name="set_title" translatable="false">Dashboard settings</string>
+    <string name="set_heading_now" translatable="false">Current setup</string>
+    <string name="set_heading_fix" translatable="false">If something is stuck</string>
+    <string name="set_startup_music" translatable="false">Startup music</string>
+    <string name="set_startup_music_off_confirm" translatable="false">Stop playing music when the car starts?</string>
+    <string name="set_last_startup" translatable="false">Last startup</string>
+    <string name="set_song_info" translatable="false">Song info (notification access)</string>
+    <string name="set_maps_app" translatable="false">Maps app</string>
+    <string name="set_home_apps" translatable="false">Home apps</string>
+    <string name="set_home_apps_value" translatable="false">%1$d on the Home row</string>
+    <string name="set_widget" translatable="false">Widget</string>
+    <string name="set_widget_none" translatable="false">None (Now playing card)</string>
+    <string name="set_posters" translatable="false">Saved posters</string>
+    <string name="set_posters_value" translatable="false">%1$d posters, %2$s</string>
+    <string name="set_clear_posters" translatable="false">Clear saved posters</string>
+    <string name="set_clear_posters_detail" translatable="false">They load again the next time each song plays online</string>
+    <string name="set_clear_posters_confirm" translatable="false">Delete every saved poster?</string>
+    <string name="set_remove_widget_confirm" translatable="false">Take the widget off and show the Now playing card?</string>
+    <string name="set_reset_home" translatable="false">Reset Home apps</string>
+    <string name="set_reset_home_detail" translatable="false">Forgets every Add to Home and Remove from Home</string>
+    <string name="set_reset_home_confirm" translatable="false">Forget every app you added to or removed from Home?</string>
+    <string name="set_reset_all" translatable="false">Reset dashboard</string>
+    <string name="set_reset_all_detail" translatable="false">Startup music, widget and saved posters back to new. Home apps stay.</string>
+    <string name="set_reset_all_confirm" translatable="false">Reset the dashboard\'s startup, widget and saved posters?</string>
+    <string name="set_home_app" translatable="false">Default Home app</string>
+    <string name="set_home_app_value" translatable="false">Now: %1$s · tap to switch to another launcher</string>
+    <string name="set_home_app_none" translatable="false">none set (Android asks)</string>
+    <string name="set_app_info" translatable="false">Android app info</string>
+    <string name="set_app_info_detail" translatable="false">Force stop or clear all data if the dashboard itself is stuck</string>
+    <string name="set_android_settings" translatable="false">Android settings</string>
+    <string name="set_version" translatable="false">Version</string>
+    <string name="set_off" translatable="false">Off</string>
+    <string name="set_not_yet" translatable="false">Not yet</string>
+    <string name="set_allowed" translatable="false">Allowed</string>
+    <string name="set_not_allowed" translatable="false">Not allowed: tap to allow Dashboard music</string>
+    <string name="set_app_missing" translatable="false">%1$s (not installed)</string>
+    <string name="set_confirm_yes" translatable="false">Yes</string>
+    <string name="set_done" translatable="false">Done</string>
+    <string name="set_cant_open" translatable="false">This unit has no such settings screen</string>
+    <string name="dash_music_listener_name" translatable="false">Dashboard music and maps</string>
+
+    <style name="Theme.Dashboard" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/dash_background</item>
+        <item name="android:colorBackground">@color/dash_background</item>
+        <item name="android:statusBarColor">@color/dash_background</item>
+        <item name="android:navigationBarColor">@color/dash_background</item>
+        <item name="android:colorAccent">@color/dash_accent</item>
+    </style>
+
+    <color name="dash_background">#FF0E1424</color>
+    <color name="dash_text">#FFEEF1F8</color>
+    <color name="dash_text_dim">#FFA9B3C9</color>
+    <color name="dash_text_mid">#FFC3CBE0</color>
+    <color name="dash_accent">#FF9DB4FF</color>
+
+    <!-- Short screens (most 1024x600 and 1280x720 head units): compact. values-h600dp has the roomy sizes. -->
+    <dimen name="dash_pad">16dp</dimen>
+    <dimen name="dash_gap">12dp</dimen>
+    <dimen name="dash_clock_text">34sp</dimen>
+    <dimen name="dash_card_pad">16dp</dimen>
+    <dimen name="dash_art">72dp</dimen>
+    <dimen name="dash_title_text">22sp</dimen>
+    <dimen name="dash_play">64dp</dimen>
+    <dimen name="dash_skip">52dp</dimen>
+    <dimen name="dash_skip_gap">24dp</dimen>
+    <dimen name="dash_tile_height">84dp</dimen>
+    <dimen name="dash_tile_icon">44dp</dimen>
+    <dimen name="dash_tile_width">96dp</dimen>
+    <dimen name="dash_app_cell">112dp</dimen>
+    <dimen name="dash_app_icon">56dp</dimen>
+</resources>

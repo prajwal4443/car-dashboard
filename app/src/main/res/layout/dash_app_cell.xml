@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One app on the All apps page: big icon, name, and a check when it is on the dashboard's Home row. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/dash_app_cell"
+    android:layout_height="wrap_content"
+    android:background="@drawable/dash_tile_bg"
+    android:paddingTop="14dp"
+    android:paddingBottom="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <ImageView
+            android:id="@+id/dashAppIcon"
+            android:layout_width="@dimen/dash_app_icon"
+            android:layout_height="@dimen/dash_app_icon"
+            android:importantForAccessibility="no"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/dashAppLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@color/dash_text"
+            android:textSize="13sp"
+            android:fontFamily="@font/outfit_medium" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/dashAppOnHome"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="-6dp"
+        android:layout_marginEnd="8dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/dash_home_badge"
+        android:visibility="gone" />
+</FrameLayout>

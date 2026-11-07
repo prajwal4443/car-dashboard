@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Over the album art in the Now playing card: dark at the top (song) and bottom (controls), clear between. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <gradient
+        android:angle="90"
+        android:startColor="#E6000000"
+        android:centerColor="#33000000"
+        android:endColor="#B3000000" />
+</shape>

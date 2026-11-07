@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A stylised street map behind the dashboard's Maps card; decoration only. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp" android:height="150dp"
+    android:viewportWidth="400" android:viewportHeight="300">
+    <path android:fillColor="#FF1B2438" android:pathData="M0,0h400v300H0z" />
+    <path android:fillColor="#FF1F3B33" android:pathData="M30,28h80v52h-80z" />
+    <path android:fillColor="#FF223052" android:pathData="M268,170h96v70h-96z" />
+    <path android:strokeColor="#FF3A4560" android:strokeWidth="16" android:pathData="M-20,150L420,40" />
+    <path android:strokeColor="#FF333D57" android:strokeWidth="12" android:pathData="M120,-20L220,320" />
+    <path android:strokeColor="#FF2F3952" android:strokeWidth="8" android:pathData="M-20,240L420,200" />
+    <path android:strokeColor="#FF2F3952" android:strokeWidth="8" android:pathData="M300,-20L200,320" />
+    <path android:fillColor="#FFEEF1F8" android:pathData="M172,118m-11,0a11,11 0,1 1,22 0a11,11 0,1 1,-22 0" />
+    <path android:fillColor="#FF4F8CFF" android:pathData="M172,118m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+</vector>

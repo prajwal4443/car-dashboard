@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One big Home app on the dashboard (DashboardActivity.addTile), in the scrolling row @id/dashTiles. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/dash_tile_width"
+    android:layout_height="match_parent"
+    android:layout_marginEnd="@dimen/dash_gap"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/dash_tile_bg"
+    android:clickable="true"
+    android:focusable="true">
+
+    <ImageView
+        android:id="@+id/dashTileIcon"
+        android:layout_width="@dimen/dash_tile_icon"
+        android:layout_height="@dimen/dash_tile_icon"
+        android:importantForAccessibility="no"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@+id/dashTileLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:gravity="center"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textColor="@color/dash_text"
+        android:textSize="13sp"
+        android:fontFamily="@font/outfit_medium" />
+</LinearLayout>

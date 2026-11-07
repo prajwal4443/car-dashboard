@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Car dashboard on a screen at least 600dp tall: the roomy sizes of the mockup. -->
+<resources>
+    <dimen name="dash_pad">28dp</dimen>
+    <dimen name="dash_gap">20dp</dimen>
+    <dimen name="dash_clock_text">46sp</dimen>
+    <dimen name="dash_card_pad">24dp</dimen>
+    <dimen name="dash_art">120dp</dimen>
+    <dimen name="dash_title_text">28sp</dimen>
+    <dimen name="dash_play">92dp</dimen>
+    <dimen name="dash_skip">72dp</dimen>
+    <dimen name="dash_skip_gap">36dp</dimen>
+    <dimen name="dash_tile_height">116dp</dimen>
+    <dimen name="dash_tile_icon">56dp</dimen>
+    <dimen name="dash_tile_width">124dp</dimen>
+    <dimen name="dash_app_cell">140dp</dimen>
+    <dimen name="dash_app_icon">72dp</dimen>
+</resources>

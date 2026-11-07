@@ -1,0 +1,16 @@
+# Build output (rebuilt from source; finished APKs go in GitHub Releases)
+build/
+.gradle/
+*.apk
+*.aab
+
+# Machine and IDE files
+local.properties
+.idea/
+*.iml
+.DS_Store
+
+# Signing keys and secrets: never in the repository
+*.jks
+*.keystore
+keystore.properties

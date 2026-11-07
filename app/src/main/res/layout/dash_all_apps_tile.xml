@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The All apps tile pinned after the dashboard's scrolling Home row; opens DashboardAppsActivity. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/dash_tile_width"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/dash_all_apps_bg"
+    android:clickable="true"
+    android:focusable="true"
+    android:contentDescription="@string/dash_all_apps">
+
+    <ImageView
+        android:layout_width="@dimen/dash_tile_icon"
+        android:layout_height="@dimen/dash_tile_icon"
+        android:background="@drawable/dash_all_apps_icon_bg"
+        android:importantForAccessibility="no"
+        android:scaleType="center"
+        android:src="@drawable/ic_apps" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:singleLine="true"
+        android:text="@string/dash_all_apps"
+        android:textColor="@color/dash_text"
+        android:textSize="13sp"
+        android:fontFamily="@font/outfit_medium" />
+</LinearLayout>

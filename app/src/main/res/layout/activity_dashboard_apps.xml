@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The car dashboard's All apps page (DashboardAppsActivity): a full-screen grid of big app icons. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/dash_pad">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dash_all_apps"
+                android:textColor="@color/dash_text"
+                android:textSize="28sp"
+                android:fontFamily="@font/outfit_medium" />
+
+            <TextView
+                android:id="@+id/dashAppsCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/dash_text_dim"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/dashAppsClose"
+            style="@style/PillButton"
+            android:text="@string/dash_done" />
+    </LinearLayout>
+
+    <GridView
+        android:id="@+id/dashAppsGrid"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/dash_gap"
+        android:numColumns="auto_fit"
+        android:columnWidth="@dimen/dash_app_cell"
+        android:stretchMode="spacingWidthUniform"
+        android:verticalSpacing="@dimen/dash_gap"
+        android:listSelector="@android:color/transparent"
+        android:scrollbars="none"
+        android:clipToPadding="false" />
+</LinearLayout>

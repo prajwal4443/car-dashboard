@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The car dashboard Home (DashboardActivity): clock, Maps card on the left, Now playing and big tiles on the right. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/dash_pad"
+    android:paddingEnd="@dimen/dash_pad"
+    android:paddingTop="@dimen/dash_gap"
+    android:paddingBottom="@dimen/dash_pad">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/dashGreeting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.25"
+                android:textColor="@color/dash_text_dim"
+                android:textSize="12sp"
+                android:fontFamily="@font/outfit_medium" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="true">
+
+                <TextClock
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:format12Hour="h:mm"
+                    android:format24Hour="H:mm"
+                    android:textColor="@color/dash_text"
+                    android:textSize="@dimen/dash_clock_text"
+                    android:fontFamily="@font/outfit_medium" />
+
+                <TextClock
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:format12Hour="a"
+                    android:format24Hour=""
+                    android:textAllCaps="true"
+                    android:textColor="@color/dash_text_dim"
+                    android:textSize="15sp"
+                    android:fontFamily="@font/outfit_medium" />
+
+                <TextClock
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="18dp"
+                    android:format12Hour="EEEE d MMMM"
+                    android:format24Hour="EEEE d MMMM"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.15"
+                    android:textColor="@color/dash_text_dim"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/outfit_medium" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/dashClear"
+            style="@style/PillButton"
+            android:drawableStart="@drawable/ic_clear_apps"
+            android:text="@string/dash_clear" />
+
+        <TextView
+            android:id="@+id/dashSettings"
+            style="@style/PillButton"
+            android:drawableStart="@drawable/ic_settings"
+            android:text="@string/settings" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="@dimen/dash_gap"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/dashMaps"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/dash_maps_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/dash_maps">
+
+            <ImageView
+                android:id="@+id/dashMapPicture"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="1dp"
+                android:importantForAccessibility="no"
+                android:scaleType="centerCrop"
+                android:src="@drawable/dash_map_art" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/dash_gap"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <include
+                    android:id="@+id/nowPlaying"
+                    layout="@layout/now_playing"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <!-- A widget picked in place of the card (DashboardWidget). -->
+                <FrameLayout
+                    android:id="@+id/dashWidgetArea"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/dash_card_bg"
+                    android:padding="8dp"
+                    android:visibility="gone">
+
+                    <FrameLayout
+                        android:id="@+id/dashWidgetSlot"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <ImageButton
+                        android:id="@+id/dashWidgetMenu"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="top|end"
+                        android:background="@drawable/dash_round_btn"
+                        android:contentDescription="@string/dash_widget_menu"
+                        android:src="@drawable/ic_more" />
+                </FrameLayout>
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/dash_tile_height"
+                android:layout_marginTop="@dimen/dash_gap"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <HorizontalScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:scrollbars="none"
+                    android:overScrollMode="never">
+
+                    <LinearLayout
+                        android:id="@+id/dashTiles"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
+                <include
+                    android:id="@+id/dashAllApps"
+                    layout="@layout/dash_all_apps_tile"
+                    android:layout_width="@dimen/dash_tile_width"
+                    android:layout_height="match_parent" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
