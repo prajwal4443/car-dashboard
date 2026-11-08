@@ -70,10 +70,19 @@ final class AutoPlay {
 
     /** A CarLink install is running (download, checks, handing over); a second tap waits for it. */
     private static final AtomicBoolean INSTALLING = new AtomicBoolean(false);
+    /**
+     * Handed to Android's installer and not answered yet (CarLinkInstallReceiver). The dashboard comes back to the
+     * front before Android has finished, still seeing the old CarLink: no update popup until the answer.
+     */
+    private static volatile boolean awaitingInstaller;
+    /** Told on the main thread when Android has answered an install (the dashboard, to refresh its popup). */
+    private static Runnable onInstallAnswered;
     /** The user went to allow installs from this app; the install starts when they are back (resumeAfterSettings). */
     private static boolean installAfterPermission;
     /** The "Install AutoPlay?" question while it is on screen, so a second tap doesn't stack another. */
     private static AlertDialog offerDialog;
+    /** The install flow's dialog title: installing CarLink, or updating it. */
+    private static int installTitle = R.string.autoplay_install_title;
     /** Keys of CarLink's notifications that show a running session; any one means a phone is projected. */
     private static final Set<String> SESSION_KEYS = new HashSet<>();
     /** CarLink's own "projected" text in the unit's language, read once from CarLink's resources. */
@@ -98,6 +107,22 @@ final class AutoPlay {
         } catch (PackageManager.NameNotFoundException e) {
             return null;
         }
+    }
+
+    /** An install or update of CarLink is downloading, being checked, or waiting for Android's answer. */
+    static boolean isInstallBusy() {
+        return INSTALLING.get() || awaitingInstaller;
+    }
+
+    static void setOnInstallAnswered(Runnable listener) {
+        onInstallAnswered = listener;
+    }
+
+    /** From CarLinkInstallReceiver (main thread): Android has answered, installed or not. */
+    static void onInstallerAnswered() {
+        awaitingInstaller = false;
+        Runnable listener = onInstallAnswered;
+        if (listener != null) listener.run();
     }
 
     /**
@@ -238,10 +263,26 @@ final class AutoPlay {
         offerDialog = new AlertDialog.Builder(activity)
                 .setTitle(R.string.autoplay_install_title)
                 .setMessage(R.string.autoplay_install_question)
-                .setPositiveButton(R.string.autoplay_install, (dialog, which) -> startInstallWhenAllowed(activity))
+                .setPositiveButton(R.string.autoplay_install, (dialog, which) -> {
+                    installTitle = R.string.autoplay_install_title;
+                    startInstallWhenAllowed(activity);
+                })
                 .setNegativeButton(android.R.string.cancel, null)
                 .setOnDismissListener(dialog -> offerDialog = null)
                 .show();
+    }
+
+    /**
+     * Updates CarLink to its latest release (CarLinkUpdateCheck found it): the same checked download, and Android's
+     * installer asks "update this app?". CarLink's own settings stay.
+     */
+    static void installUpdate(Activity activity) {
+        if (INSTALLING.get()) {
+            Toast.makeText(activity, R.string.autoplay_install_running, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        installTitle = R.string.autoplay_update_title;
+        startInstallWhenAllowed(activity);
     }
 
     /**
@@ -255,7 +296,7 @@ final class AutoPlay {
             return;
         }
         new AlertDialog.Builder(activity)
-                .setTitle(R.string.autoplay_install_title)
+                .setTitle(installTitle)
                 .setMessage(R.string.autoplay_install_allow)
                 .setPositiveButton(R.string.autoplay_install_open_setting, (dialog, which) -> {
                     installAfterPermission = true;
@@ -298,7 +339,7 @@ final class AutoPlay {
         content.addView(message);
         content.addView(bar);
         AlertDialog progress = new AlertDialog.Builder(activity)
-                .setTitle(R.string.autoplay_install_title)
+                .setTitle(installTitle)
                 .setView(content)
                 .setCancelable(false)
                 .show();
@@ -317,7 +358,13 @@ final class AutoPlay {
                     if (total > 0) main.post(() -> bar.setProgress((int) (done * 100 / total)));
                 });
                 main.post(() -> message.setText(R.string.autoplay_install_handing_over));
-                CarLinkInstaller.install(activity, apk);
+                awaitingInstaller = true;
+                try {
+                    CarLinkInstaller.install(activity, apk);
+                } catch (IOException | RuntimeException e) {
+                    awaitingInstaller = false;
+                    throw e;
+                }
                 Log.i(TAG, "CarLink " + release.version + " checked and handed to the installer");
             } catch (IOException | RuntimeException e) {
                 Log.w(TAG, "CarLink not installed", e);
@@ -331,7 +378,7 @@ final class AutoPlay {
                 progress.dismiss();
                 if (reason == null) return;   // Android's install screen comes next (CarLinkInstallReceiver)
                 new AlertDialog.Builder(activity)
-                        .setTitle(R.string.autoplay_install_title)
+                        .setTitle(installTitle)
                         .setMessage(activity.getString(R.string.autoplay_install_failed, reason))
                         .setPositiveButton(android.R.string.ok, null)
                         .show();
@@ -359,6 +406,7 @@ final class AutoPlay {
         if (session && !hasConnected(context)) {
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(CONNECTED_KEY, true).apply();
         }
+        if (!session) CarLinkUpdateCheck.notifyIfDue(context);   // an update found during the projection
         if (!session && reconnectContext != null && SystemClock.elapsedRealtime() < reconnectEndsAt) {
             lookupMainHandler().post(() -> returnHome("CarLink couldn't connect the phone"));
         }

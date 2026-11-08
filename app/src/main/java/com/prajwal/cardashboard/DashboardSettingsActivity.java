@@ -136,8 +136,14 @@ public class DashboardSettingsActivity extends Activity {
             showRows();
         });
         String carLink = AutoPlay.lookupInstalledVersion(this);
-        addRow(R.string.set_autoplay_app, carLink != null ? getString(R.string.set_autoplay_app_value, carLink)
-                : getString(R.string.set_autoplay_app_missing), v -> AutoPlay.open(this));
+        String update = CarLinkUpdateCheck.lookupAvailableUpdate(this);
+        if (update != null) {
+            addRow(R.string.set_autoplay_app, getString(R.string.set_autoplay_app_update, carLink, update),
+                    v -> AutoPlay.installUpdate(this));
+        } else {
+            addRow(R.string.set_autoplay_app, carLink != null ? getString(R.string.set_autoplay_app_value, carLink)
+                    : getString(R.string.set_autoplay_app_missing), v -> AutoPlay.open(this));
+        }
         boolean reconnect = AutoPlay.isReconnectOn(this);
         addRow(R.string.set_autoplay_reconnect, describeReconnect(reconnect), v -> {
             if (!AutoPlay.saveReconnect(this, !reconnect)) toast(R.string.home_save_failed);

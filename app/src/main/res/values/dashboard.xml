@@ -62,6 +62,13 @@
     <string name="set_autoplay_app" translatable="false">AutoPlay app</string>
     <string name="set_autoplay_app_value" translatable="false">CarLink %1$s · tap to open</string>
     <string name="set_autoplay_app_missing" translatable="false">CarLink not installed · tap to install</string>
+    <string name="set_autoplay_app_update" translatable="false">CarLink %1$s · update to %2$s available, tap to update</string>
+    <string name="autoplay_update_title" translatable="false">Update AutoPlay</string>
+    <string name="autoplay_update_question" translatable="false">CarLink %1$s is available (this unit has %2$s). Update now? CarLink keeps its settings.</string>
+    <string name="autoplay_update" translatable="false">Update</string>
+    <string name="autoplay_later" translatable="false">Later</string>
+    <string name="autoplay_update_notification" translatable="false">CarLink %1$s is available. Tap to update.</string>
+    <string name="autoplay_update_channel" translatable="false">AutoPlay updates</string>
     <string name="set_autoplay_reconnect" translatable="false">Reconnect on car start</string>
     <string name="set_autoplay_reconnect_ready" translatable="false">On · at car start AutoPlay reconnects the last phone, back to Home when it can\'t (about 20 s)</string>
     <string name="set_autoplay_reconnect_no_return" translatable="false">On · but Home can\'t come back by itself: tap AutoPlay to allow Display over other apps</string>

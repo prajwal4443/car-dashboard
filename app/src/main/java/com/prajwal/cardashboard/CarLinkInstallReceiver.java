@@ -23,6 +23,7 @@ public class CarLinkInstallReceiver extends BroadcastReceiver {
             Intent confirm = readConfirmIntent(intent);
             if (confirm == null) {
                 Log.w(TAG, "installer asked for confirmation without a screen to show");
+                AutoPlay.onInstallerAnswered();
                 Toast.makeText(context, R.string.autoplay_install_failed_plain, Toast.LENGTH_LONG).show();
                 return;
             }
@@ -30,12 +31,15 @@ public class CarLinkInstallReceiver extends BroadcastReceiver {
                 context.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             } catch (ActivityNotFoundException | SecurityException e) {
                 Log.w(TAG, "could not show the install screen", e);
+                AutoPlay.onInstallerAnswered();
                 Toast.makeText(context, R.string.autoplay_install_failed_plain, Toast.LENGTH_LONG).show();
             }
             return;
         }
+        AutoPlay.onInstallerAnswered();
         if (status == PackageInstaller.STATUS_SUCCESS) {
             Log.i(TAG, "CarLink installed");
+            CarLinkUpdateCheck.cancelNotification(context);
             Toast.makeText(context, R.string.autoplay_installed, Toast.LENGTH_LONG).show();
             return;
         }

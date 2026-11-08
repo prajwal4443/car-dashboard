@@ -2,6 +2,7 @@ package com.prajwal.cardashboard;
 
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ActivityManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
@@ -73,6 +74,9 @@ public class DashboardActivity extends Activity {
     private boolean startupPending;
     private boolean resumed;
     private int shownBackground;
+    private AlertDialog updateDialog;
+    /** Opened from the CarLink update notification: the update starts once Home is on screen. */
+    private boolean installUpdateOnResume;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +126,16 @@ public class DashboardActivity extends Activity {
         }
         showCardOrWidget();
         watchScreen();
+        CarLinkUpdateCheck.setOnUpdateFound(this::offerCarLinkUpdate);
+        AutoPlay.setOnInstallAnswered(this::refreshCarLinkUpdate);
+        CarLinkUpdateCheck.watchInternet(this);
+        installUpdateOnResume = getIntent().getBooleanExtra(CarLinkUpdateCheck.EXTRA_INSTALL_UPDATE, false);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (intent.getBooleanExtra(CarLinkUpdateCheck.EXTRA_INSTALL_UPDATE, false)) installUpdateOnResume = true;
     }
 
     @Override
@@ -147,6 +161,11 @@ public class DashboardActivity extends Activity {
         showCardOrWidget();   // the widget may have been taken off in dashboard settings
         fillTiles();
         if (map != null) map.resume();
+        if (installUpdateOnResume) {
+            installUpdateOnResume = false;
+            if (CarLinkUpdateCheck.lookupAvailableUpdate(this) != null) AutoPlay.installUpdate(this);
+        }
+        offerCarLinkUpdate();
     }
 
     @Override
@@ -241,6 +260,8 @@ public class DashboardActivity extends Activity {
         if (screenWatcher != null) unregisterReceiver(screenWatcher);
         if (nowPlaying != null) nowPlaying.release();
         if (map != null) map.release();
+        CarLinkUpdateCheck.setOnUpdateFound(null);
+        AutoPlay.setOnInstallAnswered(null);
         super.onDestroy();
     }
 
@@ -388,6 +409,33 @@ public class DashboardActivity extends Activity {
                 return true;
             });
         }
+    }
+
+    /**
+     * A newer CarLink (CarLinkUpdateCheck) as a popup, while Home is on screen and no phone is projected; once per
+     * version ("Later" marks it). Dashboard settings keeps offering it.
+     */
+    private void offerCarLinkUpdate() {
+        if (!resumed || AutoPlay.isSessionRunning() || AutoPlay.isInstallBusy()) return;
+        if (updateDialog != null && updateDialog.isShowing()) return;
+        String version = CarLinkUpdateCheck.lookupAvailableUpdate(this);
+        if (version == null || CarLinkUpdateCheck.wasDismissed(this, version)) return;
+        updateDialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.autoplay_update_title)
+                .setMessage(getString(R.string.autoplay_update_question, version, AutoPlay.lookupInstalledVersion(this)))
+                .setPositiveButton(R.string.autoplay_update, (dialog, which) -> AutoPlay.installUpdate(this))
+                .setNegativeButton(R.string.autoplay_later,
+                        (dialog, which) -> CarLinkUpdateCheck.saveDismissed(this, version))
+                .show();
+    }
+
+    /** After Android's answer to a CarLink install: a popup for a version now installed goes; a failed one returns. */
+    private void refreshCarLinkUpdate() {
+        if (updateDialog != null && updateDialog.isShowing()
+                && CarLinkUpdateCheck.lookupAvailableUpdate(this) == null) {
+            updateDialog.dismiss();
+        }
+        offerCarLinkUpdate();
     }
 
     /** AutoPlay opens CarLink; hold it to take it off Home (Dashboard settings brings it back). */
