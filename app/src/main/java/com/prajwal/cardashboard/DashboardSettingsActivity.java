@@ -49,7 +49,7 @@ public class DashboardSettingsActivity extends Activity {
         super.onResume();
         MapDownloads.watch(() -> runOnUiThread(this::showRows));
         showRows();
-        AutoPlay.resumeInstall(this);
+        AutoPlay.resumeAfterSettings(this);
     }
 
     private void showRows() {
@@ -65,7 +65,7 @@ public class DashboardSettingsActivity extends Activity {
                 }) : v -> toast(R.string.np_startup_hint));
         String lastRun = CarStartup.lookupLastRun(this);
         addRow(R.string.set_last_startup, lastRun != null ? lastRun : getString(R.string.set_not_yet), null);
-        addRow(R.string.set_song_info, getString(hasNotificationAccess() ? R.string.set_allowed : R.string.set_not_allowed),
+        addRow(R.string.set_song_info, getString(MusicListener.hasAccess(this) ? R.string.set_allowed : R.string.set_not_allowed),
                 v -> open(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)));
         addRow(R.string.set_map_style, getString(describeStyle(DashboardMap.lookupStyle(this))), v -> pickMapStyle());
         addRow(R.string.set_location, getString(DashboardMap.hasLocationPermission(this) ? R.string.set_allowed
@@ -128,7 +128,7 @@ public class DashboardSettingsActivity extends Activity {
         addRow(R.string.set_version, version, null);
     }
 
-    /** AutoPlay's tile shown or hidden on Home (a tap switches it), and the CarLink app it opens. */
+    /** AutoPlay's tile shown or hidden on Home, the CarLink app it opens, and reconnecting at car start. */
     private void addAutoPlayRows() {
         boolean onHome = AutoPlay.isOnHome(this);
         addRow(R.string.set_autoplay, getString(onHome ? R.string.set_autoplay_shown : R.string.set_autoplay_hidden), v -> {
@@ -138,6 +138,20 @@ public class DashboardSettingsActivity extends Activity {
         String carLink = AutoPlay.lookupInstalledVersion(this);
         addRow(R.string.set_autoplay_app, carLink != null ? getString(R.string.set_autoplay_app_value, carLink)
                 : getString(R.string.set_autoplay_app_missing), v -> AutoPlay.open(this));
+        boolean reconnect = AutoPlay.isReconnectOn(this);
+        addRow(R.string.set_autoplay_reconnect, describeReconnect(reconnect), v -> {
+            if (!AutoPlay.saveReconnect(this, !reconnect)) toast(R.string.home_save_failed);
+            showRows();
+        });
+    }
+
+    /** On or off, and when on, what still stands in its way (the prompts on tapping AutoPlay ask for permissions). */
+    private String describeReconnect(boolean reconnect) {
+        if (!reconnect) return getString(R.string.set_off);
+        String blocker = AutoPlay.findReconnectBlocker(this);
+        if (blocker != null) return getString(R.string.set_autoplay_reconnect_waiting, blocker);
+        return getString(Settings.canDrawOverlays(this) ? R.string.set_autoplay_reconnect_ready
+                : R.string.set_autoplay_reconnect_no_return);
     }
 
     private void pickMapStyle() {
@@ -335,16 +349,6 @@ public class DashboardSettingsActivity extends Activity {
         } catch (PackageManager.NameNotFoundException e) {
             return getString(R.string.set_app_missing, pkg);
         }
-    }
-
-    private boolean hasNotificationAccess() {
-        String enabled = Settings.Secure.getString(getContentResolver(), "enabled_notification_listeners");
-        if (enabled == null) return false;
-        ComponentName mine = new ComponentName(this, MusicListener.class);
-        for (String entry : enabled.split(":")) {
-            if (mine.equals(ComponentName.unflattenFromString(entry))) return true;
-        }
-        return false;
     }
 
     private static String formatMegabytes(long bytes) {

@@ -1,7 +1,10 @@
 package com.prajwal.cardashboard;
 
 import android.app.Notification;
+import android.content.ComponentName;
+import android.content.Context;
 import android.graphics.drawable.Icon;
+import android.provider.Settings;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -36,6 +39,17 @@ public class MusicListener extends NotificationListenerService {
     private static String navigationPackage = "com.google.android.apps.maps";
     private static Turn lastTurn;
     private static Consumer<Turn> turnWatcher;
+
+    /** Whether the user has given this listener notification access (Android's Notification access screen). */
+    static boolean hasAccess(Context context) {
+        String enabled = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
+        if (enabled == null) return false;
+        ComponentName mine = new ComponentName(context, MusicListener.class);
+        for (String entry : enabled.split(":")) {
+            if (mine.equals(ComponentName.unflattenFromString(entry))) return true;
+        }
+        return false;
+    }
 
     /** The dashboard follows the turn banner while it is on screen; null stops. Hands over the current turn at once. */
     static void watchTurns(String mapsPackage, Consumer<Turn> watcher) {

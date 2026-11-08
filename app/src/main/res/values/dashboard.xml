@@ -62,6 +62,14 @@
     <string name="set_autoplay_app" translatable="false">AutoPlay app</string>
     <string name="set_autoplay_app_value" translatable="false">CarLink %1$s · tap to open</string>
     <string name="set_autoplay_app_missing" translatable="false">CarLink not installed · tap to install</string>
+    <string name="set_autoplay_reconnect" translatable="false">Reconnect on car start</string>
+    <string name="set_autoplay_reconnect_ready" translatable="false">On · at car start AutoPlay reconnects the last phone, back to Home after 40 s if none connects</string>
+    <string name="set_autoplay_reconnect_no_return" translatable="false">On · but Home can\'t come back by itself: tap AutoPlay to allow Display over other apps</string>
+    <string name="set_autoplay_reconnect_waiting" translatable="false">On · not yet: %1$s</string>
+    <string name="autoplay_ask_notifications" translatable="false">AutoPlay needs notification access to see when your phone is connected: to keep our navigation quiet during CarPlay or Android Auto, and to reconnect your phone when the car starts. Allow \"Car Dashboard\" on the next screen, then come back.</string>
+    <string name="autoplay_ask_overlay" translatable="false">When the car starts, AutoPlay reconnects your phone. If no phone connects, Car Dashboard comes back by itself only with \"Display over other apps\". Turn it on for Car Dashboard on the next screen, then come back.</string>
+    <string name="autoplay_allow" translatable="false">Allow</string>
+    <string name="autoplay_not_now" translatable="false">Not now</string>
     <string name="autoplay_name" translatable="false">AutoPlay</string>
     <string name="autoplay_install_title" translatable="false">Install AutoPlay</string>
     <string name="autoplay_install_question" translatable="false">AutoPlay uses the free, open-source CarLink app for CarPlay and Android Auto. Download the latest CarLink from GitHub (about 17 MB) and install it?</string>

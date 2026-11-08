@@ -24,6 +24,9 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
     <!-- AutoPlay: installs the CarLink app from its GitHub release (CarLinkInstaller); Android asks the user each time. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- AutoPlay at car start: Home comes back by itself when no phone connects (Android 10+ needs this to open an
+         activity from the background). Asked as a prompt when AutoPlay is tapped. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <queries>
         <!-- The apps for the Home tiles and All apps. -->

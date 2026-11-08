@@ -31,6 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * While a phone is projected, CarLink's engines keep an ongoing notification, which MusicListener (notification
  * access) hands to {@link #trackNotification}. Our navigation voice is quiet then (VoiceGuide), so the phone's own
  * navigation is the only one speaking; speed camera alerts keep speaking.
+ *
+ * Once a phone has connected, every car start opens AutoPlay to reconnect it, and comes back to Home when none
+ * connects (reconnectOnCarStart). The permissions this needs are asked as prompts when AutoPlay is tapped.
  */
 final class AutoPlay {
     static final String TAG = "CarDash.AutoPlay";
@@ -41,10 +44,23 @@ final class AutoPlay {
     private static final String ANDROID_AUTO_SESSION_STRING = "notification_projection_active";
     private static final String PREFS = "autoplay";
     private static final String ON_HOME_KEY = "on_home";
+    private static final String RECONNECT_KEY = "reconnect_on_car_start";
+    /** A phone has been projected through AutoPlay at least once: from then on, car starts reconnect it. */
+    private static final String CONNECTED_KEY = "has_connected";
+    /** At car start, how long CarLink gets to reconnect a phone before Home comes back (wireless CarPlay ~20 s). */
+    static final long RECONNECT_WAIT_MS = 40_000;
+    /** Main-thread handler for the car-start check, made on first use (unit tests have no main Looper). */
+    private static Handler mainHandler;
+    private static Runnable reconnectCheck;
+    /** The user went to a permission's switch from AutoPlay's prompt; CarLink opens once they are back. */
+    private static boolean openAfterPermission;
+    /** Each permission is asked at most once per tap of AutoPlay. */
+    private static boolean askedNotificationAccess;
+    private static boolean askedOverlay;
 
     /** A CarLink install is running (download, checks, handing over); a second tap waits for it. */
     private static final AtomicBoolean INSTALLING = new AtomicBoolean(false);
-    /** The user went to allow installs from this app; the install starts when they are back (resumeInstall). */
+    /** The user went to allow installs from this app; the install starts when they are back (resumeAfterSettings). */
     private static boolean installAfterPermission;
     /** The "Install AutoPlay?" question while it is on screen, so a second tap doesn't stack another. */
     private static AlertDialog offerDialog;
@@ -74,14 +90,115 @@ final class AutoPlay {
         }
     }
 
-    /** Opens CarLink; when it isn't installed, offers to install its latest release (offerInstall). */
+    /**
+     * Opens CarLink; when it isn't installed, offers to install its latest release (offerInstall). Before opening,
+     * asks once per tap for what AutoPlay's car-start reconnect needs (askForPermissions).
+     */
     static void open(Activity activity) {
-        Intent carLink = activity.getPackageManager().getLaunchIntentForPackage(CARLINK_PACKAGE);
-        if (carLink != null) {
-            DashboardActivity.startApp(activity, carLink);
+        if (activity.getPackageManager().getLaunchIntentForPackage(CARLINK_PACKAGE) == null) {
+            offerInstall(activity);
             return;
         }
-        offerInstall(activity);
+        askedNotificationAccess = false;
+        askedOverlay = false;
+        askForPermissionsThenOpen(activity);
+    }
+
+    /**
+     * The permissions as their own prompts, one at a time, each going straight to Android's switch for this app:
+     * notification access (to see that a phone is connected) and "Display over other apps" (to come back to Home
+     * when no phone connects at car start). "Not now" goes on to CarLink; coming back from the switch carries on
+     * (resumeAfterSettings).
+     */
+    private static void askForPermissionsThenOpen(Activity activity) {
+        if (!askedNotificationAccess && !MusicListener.hasAccess(activity)) {
+            askedNotificationAccess = true;
+            askThenOpen(activity, R.string.autoplay_ask_notifications,
+                    new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
+            return;
+        }
+        if (!askedOverlay && !Settings.canDrawOverlays(activity)) {
+            askedOverlay = true;
+            askThenOpen(activity, R.string.autoplay_ask_overlay, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + activity.getPackageName())));
+            return;
+        }
+        Intent carLink = activity.getPackageManager().getLaunchIntentForPackage(CARLINK_PACKAGE);
+        if (carLink != null) DashboardActivity.startApp(activity, carLink);
+    }
+
+    private static void askThenOpen(Activity activity, int question, Intent permissionScreen) {
+        new AlertDialog.Builder(activity)
+                .setTitle(R.string.autoplay_name)
+                .setMessage(question)
+                .setPositiveButton(R.string.autoplay_allow, (dialog, which) -> {
+                    openAfterPermission = true;
+                    DashboardActivity.startApp(activity, permissionScreen);
+                })
+                .setNegativeButton(R.string.autoplay_not_now, (dialog, which) -> askForPermissionsThenOpen(activity))
+                .show();
+    }
+
+    /**
+     * At car start (CarStartup's claim, from Home): when a phone has connected through AutoPlay before, opens CarLink,
+     * which reconnects the last phone only while its own screen is in front. If no phone is projected within
+     * RECONNECT_WAIT_MS, Home comes back and {@code whenNoPhone} runs (the startup music). False when nothing was
+     * done (AutoPlay hidden or off, never connected, CarLink missing, or no notification access to see a phone).
+     */
+    static boolean reconnectOnCarStart(Activity activity, Runnable whenNoPhone) {
+        Context app = activity.getApplicationContext();
+        String skipped = findReconnectBlocker(app);
+        if (skipped != null) {
+            Log.i(TAG, "car start: no reconnect, " + skipped);
+            return false;
+        }
+        Intent carLink = app.getPackageManager().getLaunchIntentForPackage(CARLINK_PACKAGE);
+        if (carLink == null) return false;
+        Log.i(TAG, "car start: opening AutoPlay to reconnect the last phone");
+        DashboardActivity.startApp(activity, carLink);
+        lookupMainHandler().removeCallbacks(reconnectCheck);
+        reconnectCheck = () -> {
+            if (isSessionRunning()) {
+                Log.i(TAG, "car start: phone projected, AutoPlay stays");
+                return;
+            }
+            if (!Settings.canDrawOverlays(app)) {
+                Log.w(TAG, "car start: no phone, but Display over other apps is off: AutoPlay stays in front");
+                return;
+            }
+            Log.i(TAG, "car start: no phone within " + RECONNECT_WAIT_MS / 1000 + " s, back to Home");
+            DashboardActivity.startApp(app, new Intent(app, DashboardActivity.class));
+            whenNoPhone.run();
+        };
+        lookupMainHandler().postDelayed(reconnectCheck, RECONNECT_WAIT_MS);
+        return true;
+    }
+
+    private static synchronized Handler lookupMainHandler() {
+        if (mainHandler == null) mainHandler = new Handler(Looper.getMainLooper());
+        return mainHandler;
+    }
+
+    /** Why AutoPlay won't reconnect at car start, or null when it will. */
+    static String findReconnectBlocker(Context context) {
+        if (!isOnHome(context)) return "AutoPlay is hidden";
+        if (!isReconnectOn(context)) return "reconnect is off";
+        if (!hasConnected(context)) return "no phone has connected through AutoPlay yet";
+        if (lookupInstalledVersion(context) == null) return "CarLink is not installed";
+        if (!MusicListener.hasAccess(context)) return "no notification access";
+        return null;
+    }
+
+    static boolean isReconnectOn(Context context) {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(RECONNECT_KEY, true);
+    }
+
+    static boolean saveReconnect(Context context, boolean on) {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(RECONNECT_KEY, on).commit();
+    }
+
+    private static boolean hasConnected(Context context) {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(CONNECTED_KEY, false);
     }
 
     /**
@@ -106,7 +223,7 @@ final class AutoPlay {
     /**
      * Android must first allow this app to install apps ("Install unknown apps"). Asked before downloading: some
      * units cancel an install that is already waiting when the user goes to that setting. Once the user is back with
-     * it allowed, resumeInstall (from the activity's onResume) carries on.
+     * it allowed, resumeAfterSettings (from the activity's onResume) carries on.
      */
     private static void startInstallWhenAllowed(Activity activity) {
         if (activity.getPackageManager().canRequestPackageInstalls()) {
@@ -125,8 +242,16 @@ final class AutoPlay {
                 .show();
     }
 
-    /** From onResume: back from "Install unknown apps", the waiting install starts if it is now allowed. */
-    static void resumeInstall(Activity activity) {
+    /**
+     * From onResume: back from a switch AutoPlay sent the user to. After a permission prompt, the next prompt or
+     * CarLink follows; after "Install unknown apps", the waiting install starts if it is now allowed.
+     */
+    static void resumeAfterSettings(Activity activity) {
+        if (openAfterPermission) {
+            openAfterPermission = false;
+            askForPermissionsThenOpen(activity);
+            return;
+        }
         if (!installAfterPermission) return;
         installAfterPermission = false;
         if (activity.getPackageManager().canRequestPackageInstalls()) {
@@ -205,7 +330,11 @@ final class AutoPlay {
         synchronized (AutoPlay.class) {
             changed = session ? SESSION_KEYS.add(key) : SESSION_KEYS.remove(key);
         }
-        if (changed) Log.i(TAG, session ? "phone projected: our navigation voice is quiet" : "projection ended");
+        if (!changed) return;
+        Log.i(TAG, session ? "phone projected: our navigation voice is quiet" : "projection ended");
+        if (session && !hasConnected(context)) {
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(CONNECTED_KEY, true).apply();
+        }
     }
 
     /** Whether one of CarLink's notifications shows a session: ongoing, with either engine's "running" text. */

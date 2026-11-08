@@ -142,7 +142,7 @@ public class DashboardActivity extends Activity {
         super.onResume();
         resumed = true;
         runPendingStartup();
-        AutoPlay.resumeInstall(this);
+        AutoPlay.resumeAfterSettings(this);
         showGreeting();
         showCardOrWidget();   // the widget may have been taken off in dashboard settings
         fillTiles();
@@ -265,11 +265,17 @@ public class DashboardActivity extends Activity {
         if (resumed) runPendingStartup();
     }
 
-    /** From onResume: the startup music, only while Home is in front (Android lets an app open others only then). */
+    /**
+     * From onResume, after a car start: AutoPlay first (it reconnects the last phone; the music only plays if no phone
+     * connects), else the startup music. Only while Home is in front: Android lets an app open others only then.
+     */
     private void runPendingStartup() {
         if (!startupPending) return;
         startupPending = false;
-        handler.postDelayed(() -> CarStartup.playMusic(this), STARTUP_DELAY_MS);
+        Context app = getApplicationContext();
+        handler.postDelayed(() -> {
+            if (!AutoPlay.reconnectOnCarStart(this, () -> CarStartup.playMusic(app))) CarStartup.playMusic(this);
+        }, STARTUP_DELAY_MS);
     }
 
     /**
