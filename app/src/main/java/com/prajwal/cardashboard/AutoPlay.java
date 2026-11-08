@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.LinearLayout;
@@ -47,11 +48,20 @@ final class AutoPlay {
     private static final String RECONNECT_KEY = "reconnect_on_car_start";
     /** A phone has been projected through AutoPlay at least once: from then on, car starts reconnect it. */
     private static final String CONNECTED_KEY = "has_connected";
-    /** At car start, how long CarLink gets to reconnect a phone before Home comes back (wireless CarPlay ~20 s). */
-    static final long RECONNECT_WAIT_MS = 40_000;
+    /**
+     * At car start, Home comes back when CarLink gives up on the phone (its session notification goes), or after
+     * RECONNECT_WAIT_MS if it hasn't even started trying. An attempt still running then gets until RECONNECT_LIMIT_MS:
+     * wireless CarPlay took 18 s to connect on a test unit, so a fixed 20 s would cut slow connections off.
+     */
+    static final long RECONNECT_WAIT_MS = 20_000;
+    static final long RECONNECT_LIMIT_MS = 45_000;
     /** Main-thread handler for the car-start check, made on first use (unit tests have no main Looper). */
     private static Handler mainHandler;
     private static Runnable reconnectCheck;
+    /** The car-start reconnect being watched: where to come back to, what runs then, and until when (elapsed ms). */
+    private static Context reconnectContext;
+    private static Runnable reconnectWhenNoPhone;
+    private static long reconnectEndsAt;
     /** The user went to a permission's switch from AutoPlay's prompt; CarLink opens once they are back. */
     private static boolean openAfterPermission;
     /** Each permission is asked at most once per tap of AutoPlay. */
@@ -141,8 +151,8 @@ final class AutoPlay {
 
     /**
      * At car start (CarStartup's claim, from Home): when a phone has connected through AutoPlay before, opens CarLink,
-     * which reconnects the last phone only while its own screen is in front. If no phone is projected within
-     * RECONNECT_WAIT_MS, Home comes back and {@code whenNoPhone} runs (the startup music). False when nothing was
+     * which reconnects the last phone only while its own screen is in front. When CarLink gives up, or hasn't started
+     * by RECONNECT_WAIT_MS, Home comes back and {@code whenNoPhone} runs (the startup music). False when nothing was
      * done (AutoPlay hidden or off, never connected, CarLink missing, or no notification access to see a phone).
      */
     static boolean reconnectOnCarStart(Activity activity, Runnable whenNoPhone) {
@@ -157,21 +167,35 @@ final class AutoPlay {
         Log.i(TAG, "car start: opening AutoPlay to reconnect the last phone");
         DashboardActivity.startApp(activity, carLink);
         lookupMainHandler().removeCallbacks(reconnectCheck);
+        reconnectContext = app;
+        reconnectWhenNoPhone = whenNoPhone;
+        reconnectEndsAt = SystemClock.elapsedRealtime() + RECONNECT_LIMIT_MS;
         reconnectCheck = () -> {
             if (isSessionRunning()) {
-                Log.i(TAG, "car start: phone projected, AutoPlay stays");
-                return;
+                Log.i(TAG, "car start: AutoPlay is connecting or connected, it stays");
+                return;   // a failure from here ends the session: returnHome via trackNotification
             }
-            if (!Settings.canDrawOverlays(app)) {
-                Log.w(TAG, "car start: no phone, but Display over other apps is off: AutoPlay stays in front");
-                return;
-            }
-            Log.i(TAG, "car start: no phone within " + RECONNECT_WAIT_MS / 1000 + " s, back to Home");
-            DashboardActivity.startApp(app, new Intent(app, DashboardActivity.class));
-            whenNoPhone.run();
+            returnHome("CarLink hasn't started connecting in " + RECONNECT_WAIT_MS / 1000 + " s");
         };
         lookupMainHandler().postDelayed(reconnectCheck, RECONNECT_WAIT_MS);
         return true;
+    }
+
+    /** Ends a car-start reconnect without a phone: Home comes back (if allowed) and the startup music follows. */
+    private static void returnHome(String reason) {
+        Context app = reconnectContext;
+        Runnable whenNoPhone = reconnectWhenNoPhone;
+        if (app == null) return;
+        reconnectContext = null;
+        reconnectWhenNoPhone = null;
+        lookupMainHandler().removeCallbacks(reconnectCheck);
+        if (!Settings.canDrawOverlays(app)) {
+            Log.w(TAG, "car start: " + reason + ", but Display over other apps is off: AutoPlay stays in front");
+            return;
+        }
+        Log.i(TAG, "car start: " + reason + ", back to Home");
+        DashboardActivity.startApp(app, new Intent(app, DashboardActivity.class));
+        whenNoPhone.run();
     }
 
     private static synchronized Handler lookupMainHandler() {
@@ -334,6 +358,9 @@ final class AutoPlay {
         Log.i(TAG, session ? "phone projected: our navigation voice is quiet" : "projection ended");
         if (session && !hasConnected(context)) {
             context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(CONNECTED_KEY, true).apply();
+        }
+        if (!session && reconnectContext != null && SystemClock.elapsedRealtime() < reconnectEndsAt) {
+            lookupMainHandler().post(() -> returnHome("CarLink couldn't connect the phone"));
         }
     }
 
