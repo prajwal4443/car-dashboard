@@ -40,6 +40,9 @@ It is not an Android Auto or Android Automotive OS app.
    install (the first time, allow Car Dashboard to install apps). Go through CarLink's setup. In CarLink's settings, turn **Start with the car** off: with no phone connected, the car then starts on
    this dashboard, and CarLink comes to the front by itself when a phone connects (Bluetooth or USB). On a tablet,
    which phones don't reconnect to by Bluetooth, tap AutoPlay once per drive. Hide the tile in Dashboard settings.
+   Once a phone has connected through AutoPlay, each car start reconnects it behind a "Connecting to your phone…"
+   screen: CarPlay or Android Auto shows once connected, and the dashboard stays if no phone connects within 20 s.
+   This needs Display over other apps and Accessibility (it reads only CarLink's screen), asked when you tap AutoPlay.
 
 ## Build
 
