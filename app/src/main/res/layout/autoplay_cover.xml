@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AutoPlay's car-start cover (ConnectingCover): over CarLink while it reconnects the last phone. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dash_background"
+    android:clickable="true">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/dash_accent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/autoplay_cover_title"
+            android:textColor="@color/dash_text"
+            android:textSize="26sp"
+            android:fontFamily="@font/outfit_medium" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/autoplay_cover_detail"
+            android:textColor="@color/dash_text_dim"
+            android:textSize="15sp"
+            android:fontFamily="@font/outfit_regular" />
+
+        <LinearLayout
+            android:id="@+id/autoplayCoverShow"
+            android:layout_width="@dimen/dash_tile_width"
+            android:layout_height="@dimen/dash_tile_height"
+            android:layout_marginTop="28dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/dash_tile_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/autoplay_cover_show">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_autoplay" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:singleLine="true"
+                android:text="@string/autoplay_cover_show"
+                android:textColor="@color/dash_text"
+                android:textSize="12sp"
+                android:fontFamily="@font/outfit_medium" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

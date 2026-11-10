@@ -156,8 +156,9 @@ public class DashboardSettingsActivity extends Activity {
         if (!reconnect) return getString(R.string.set_off);
         String blocker = AutoPlay.findReconnectBlocker(this);
         if (blocker != null) return getString(R.string.set_autoplay_reconnect_waiting, blocker);
-        return getString(Settings.canDrawOverlays(this) ? R.string.set_autoplay_reconnect_ready
-                : R.string.set_autoplay_reconnect_no_return);
+        if (!Settings.canDrawOverlays(this)) return getString(R.string.set_autoplay_reconnect_no_return);
+        return getString(CarLinkScreenReader.isEnabled(this) ? R.string.set_autoplay_reconnect_ready
+                : R.string.set_autoplay_reconnect_visible);
     }
 
     private void pickMapStyle() {

@@ -34,7 +34,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * navigation is the only one speaking; speed camera alerts keep speaking.
  *
  * Once a phone has connected, every car start opens AutoPlay to reconnect it, and comes back to Home when none
- * connects (reconnectOnCarStart). The permissions this needs are asked as prompts when AutoPlay is tapped.
+ * connects (reconnectOnCarStart). With Accessibility on, a "Connecting to your phone…" cover hides CarLink until the
+ * phone is on screen (ConnectingCover, CarLinkScreenReader). The permissions this needs are asked as prompts when
+ * AutoPlay is tapped.
  */
 final class AutoPlay {
     static final String TAG = "CarDash.AutoPlay";
@@ -55,18 +57,25 @@ final class AutoPlay {
      */
     static final long RECONNECT_WAIT_MS = 20_000;
     static final long RECONNECT_LIMIT_MS = 45_000;
+    /** Under the cover, how often CarLink's screen is looked at. */
+    static final long COVER_POLL_MS = 500;
+
+    /** What the car-start cover does next (chooseCoverStep). */
+    enum CoverStep { KEEP, SHOW_CARLINK, GO_HOME }
     /** Main-thread handler for the car-start check, made on first use (unit tests have no main Looper). */
     private static Handler mainHandler;
     private static Runnable reconnectCheck;
     /** The car-start reconnect being watched: where to come back to, what runs then, and until when (elapsed ms). */
     private static Context reconnectContext;
     private static Runnable reconnectWhenNoPhone;
+    private static long reconnectStartedAt;
     private static long reconnectEndsAt;
     /** The user went to a permission's switch from AutoPlay's prompt; CarLink opens once they are back. */
     private static boolean openAfterPermission;
     /** Each permission is asked at most once per tap of AutoPlay. */
     private static boolean askedNotificationAccess;
     private static boolean askedOverlay;
+    private static boolean askedAccessibility;
 
     /** A CarLink install is running (download, checks, handing over); a second tap waits for it. */
     private static final AtomicBoolean INSTALLING = new AtomicBoolean(false);
@@ -83,8 +92,12 @@ final class AutoPlay {
     private static AlertDialog offerDialog;
     /** The install flow's dialog title: installing CarLink, or updating it. */
     private static int installTitle = R.string.autoplay_install_title;
-    /** Keys of CarLink's notifications that show a running session; any one means a phone is projected. */
+    /**
+     * Keys of CarLink's notifications that show a running session. CarPlay's is posted when CarLink starts trying,
+     * so it means "connecting or connected"; Android Auto's "projected" one means on screen (PROJECTED_KEYS too).
+     */
     private static final Set<String> SESSION_KEYS = new HashSet<>();
+    private static final Set<String> PROJECTED_KEYS = new HashSet<>();
     /** CarLink's own "projected" text in the unit's language, read once from CarLink's resources. */
     private static String androidAutoSessionText;
 
@@ -136,13 +149,15 @@ final class AutoPlay {
         }
         askedNotificationAccess = false;
         askedOverlay = false;
+        askedAccessibility = false;
         askForPermissionsThenOpen(activity);
     }
 
     /**
      * The permissions as their own prompts, one at a time, each going straight to Android's switch for this app:
-     * notification access (to see that a phone is connected) and "Display over other apps" (to come back to Home
-     * when no phone connects at car start). "Not now" goes on to CarLink; coming back from the switch carries on
+     * notification access (to see that a phone is connected), "Display over other apps" (to come back to Home
+     * when no phone connects at car start, and for the cover) and Accessibility (to see when the phone is on screen,
+     * so the cover can hide CarLink while it connects). "Not now" goes on to CarLink; coming back from the switch carries on
      * (resumeAfterSettings).
      */
     private static void askForPermissionsThenOpen(Activity activity) {
@@ -156,6 +171,11 @@ final class AutoPlay {
             askedOverlay = true;
             askThenOpen(activity, R.string.autoplay_ask_overlay, new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + activity.getPackageName())));
+            return;
+        }
+        if (!askedAccessibility && !CarLinkScreenReader.isEnabled(activity)) {
+            askedAccessibility = true;
+            askThenOpen(activity, R.string.autoplay_ask_accessibility, new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
             return;
         }
         Intent carLink = activity.getPackageManager().getLaunchIntentForPackage(CARLINK_PACKAGE);
@@ -176,9 +196,13 @@ final class AutoPlay {
 
     /**
      * At car start (CarStartup's claim, from Home): when a phone has connected through AutoPlay before, opens CarLink,
-     * which reconnects the last phone only while its own screen is in front. When CarLink gives up, or hasn't started
-     * by RECONNECT_WAIT_MS, Home comes back and {@code whenNoPhone} runs (the startup music). False when nothing was
-     * done (AutoPlay hidden or off, never connected, CarLink missing, or no notification access to see a phone).
+     * which reconnects the last phone only while its own screen is in front. False when nothing was done (AutoPlay
+     * hidden or off, never connected, CarLink missing, or no notification access to see a phone).
+     *
+     * With "Display over other apps" and Accessibility, ConnectingCover goes up first and CarLink connects under it:
+     * the cover goes once the phone is on screen, or Home comes back (chooseCoverStep). Without them CarLink is seen
+     * connecting, and Home comes back when CarLink gives up, or hasn't started by RECONNECT_WAIT_MS. Either way
+     * {@code whenNoPhone} (the startup music) runs when Home comes back.
      */
     static boolean reconnectOnCarStart(Activity activity, Runnable whenNoPhone) {
         Context app = activity.getApplicationContext();
@@ -189,38 +213,108 @@ final class AutoPlay {
         }
         Intent carLink = app.getPackageManager().getLaunchIntentForPackage(CARLINK_PACKAGE);
         if (carLink == null) return false;
-        Log.i(TAG, "car start: opening AutoPlay to reconnect the last phone");
-        DashboardActivity.startApp(activity, carLink);
         lookupMainHandler().removeCallbacks(reconnectCheck);
         reconnectContext = app;
         reconnectWhenNoPhone = whenNoPhone;
-        reconnectEndsAt = SystemClock.elapsedRealtime() + RECONNECT_LIMIT_MS;
-        reconnectCheck = () -> {
-            if (isSessionRunning()) {
-                Log.i(TAG, "car start: AutoPlay is connecting or connected, it stays");
-                return;   // a failure from here ends the session: returnHome via trackNotification
-            }
-            returnHome("CarLink hasn't started connecting in " + RECONNECT_WAIT_MS / 1000 + " s");
-        };
-        lookupMainHandler().postDelayed(reconnectCheck, RECONNECT_WAIT_MS);
+        reconnectStartedAt = SystemClock.elapsedRealtime();
+        reconnectEndsAt = reconnectStartedAt + RECONNECT_LIMIT_MS;
+        boolean covered = CarLinkScreenReader.isEnabled(app) && ConnectingCover.show(app, AutoPlay::showCarLinkFromCover);
+        Log.i(TAG, "car start: opening AutoPlay to reconnect the last phone" + (covered ? ", under the cover" : ""));
+        DashboardActivity.startApp(activity, carLink);
+        if (covered) {
+            reconnectCheck = AutoPlay::checkUnderCover;
+            lookupMainHandler().postDelayed(reconnectCheck, COVER_POLL_MS);
+        } else {
+            reconnectCheck = () -> {
+                if (isSessionRunning()) {
+                    Log.i(TAG, "car start: AutoPlay is connecting or connected, it stays");
+                    return;   // a failure from here ends the session: returnHome via trackNotification
+                }
+                returnHome("CarLink hasn't started connecting in " + RECONNECT_WAIT_MS / 1000 + " s");
+            };
+            lookupMainHandler().postDelayed(reconnectCheck, RECONNECT_WAIT_MS);
+        }
         return true;
     }
 
-    /** Ends a car-start reconnect without a phone: Home comes back (if allowed) and the startup music follows. */
+    /**
+     * Under the cover: the phone on screen (CarPlay's session plus a CarLink window with no text, or Android Auto's
+     * "projected") shows CarLink; no session by RECONNECT_WAIT_MS, or none on screen by RECONNECT_LIMIT_MS, brings
+     * Home back. A session that ends early brings Home back through trackNotification.
+     */
+    static CoverStep chooseCoverStep(boolean session, boolean projected, CarLinkScreenReader.Screen screen,
+                                     long elapsedMs) {
+        if (projected || (session && screen == CarLinkScreenReader.Screen.PROJECTING)) return CoverStep.SHOW_CARLINK;
+        if (elapsedMs >= RECONNECT_LIMIT_MS) return CoverStep.GO_HOME;
+        if (!session && elapsedMs >= RECONNECT_WAIT_MS) return CoverStep.GO_HOME;
+        return CoverStep.KEEP;
+    }
+
+    private static void checkUnderCover() {
+        if (reconnectContext == null) return;
+        boolean session;
+        boolean projected;
+        synchronized (AutoPlay.class) {
+            session = !SESSION_KEYS.isEmpty();
+            projected = !PROJECTED_KEYS.isEmpty();
+        }
+        long elapsed = SystemClock.elapsedRealtime() - reconnectStartedAt;
+        CarLinkScreenReader.Screen screen = CarLinkScreenReader.findScreen();
+        switch (chooseCoverStep(session, projected, screen, elapsed)) {
+            case SHOW_CARLINK:
+                Log.i(TAG, "car start: phone on screen after " + elapsed / 1000 + " s, the cover goes");
+                endReconnect();
+                ConnectingCover.hide();
+                break;
+            case GO_HOME:
+                returnHome(session ? "the phone isn't on screen in " + RECONNECT_LIMIT_MS / 1000 + " s"
+                        : "CarLink hasn't started connecting in " + RECONNECT_WAIT_MS / 1000 + " s");
+                break;
+            default:
+                lookupMainHandler().postDelayed(reconnectCheck, COVER_POLL_MS);
+        }
+    }
+
+    /** The cover's AutoPlay button: CarLink is shown as it is, and stays (no coming back to Home). */
+    private static void showCarLinkFromCover() {
+        Log.i(TAG, "car start: CarLink shown from the cover");
+        endReconnect();
+        ConnectingCover.hide();
+    }
+
+    /** Stops watching the car-start reconnect. */
+    private static void endReconnect() {
+        reconnectContext = null;
+        reconnectWhenNoPhone = null;
+        lookupMainHandler().removeCallbacks(reconnectCheck);
+    }
+
+    /**
+     * Ends a car-start reconnect without a phone: Home comes back (if allowed) and the startup music follows. The
+     * cover stays until Home is on screen (onHomeShown), so CarLink isn't seen on the way out.
+     */
     private static void returnHome(String reason) {
         Context app = reconnectContext;
         Runnable whenNoPhone = reconnectWhenNoPhone;
         if (app == null) return;
-        reconnectContext = null;
-        reconnectWhenNoPhone = null;
-        lookupMainHandler().removeCallbacks(reconnectCheck);
+        endReconnect();
         if (!Settings.canDrawOverlays(app)) {
             Log.w(TAG, "car start: " + reason + ", but Display over other apps is off: AutoPlay stays in front");
+            ConnectingCover.hide();
             return;
         }
         Log.i(TAG, "car start: " + reason + ", back to Home");
         DashboardActivity.startApp(app, new Intent(app, DashboardActivity.class));
+        lookupMainHandler().postDelayed(ConnectingCover::hide, COVER_HIDE_FALLBACK_MS);
         whenNoPhone.run();
+    }
+
+    /** If Home somehow doesn't come back, the cover still goes after this. */
+    private static final long COVER_HIDE_FALLBACK_MS = 3_000;
+
+    /** From the dashboard's onResume: Home is on screen, so a cover left from a car start goes. */
+    static void onHomeShown() {
+        if (reconnectContext == null) ConnectingCover.hide();
     }
 
     private static synchronized Handler lookupMainHandler() {
@@ -397,9 +491,12 @@ final class AutoPlay {
                 (notification.flags & Notification.FLAG_ONGOING_EVENT) != 0,
                 notification.extras.getCharSequence(Notification.EXTRA_TEXT),
                 lookupAndroidAutoSessionText(context));
+        boolean projected = session && isProjectedNotification(notification.extras.getCharSequence(Notification.EXTRA_TEXT),
+                lookupAndroidAutoSessionText(context));
         boolean changed;
         synchronized (AutoPlay.class) {
             changed = session ? SESSION_KEYS.add(key) : SESSION_KEYS.remove(key);
+            if (projected) PROJECTED_KEYS.add(key); else PROJECTED_KEYS.remove(key);
         }
         if (!changed) return;
         Log.i(TAG, session ? "phone projected: our navigation voice is quiet" : "projection ended");
@@ -417,6 +514,11 @@ final class AutoPlay {
         if (!ongoing || text == null) return false;
         String shown = text.toString();
         return shown.equals(CARPLAY_SESSION_TEXT) || shown.equals(androidAutoSessionText);
+    }
+
+    /** Android Auto's "projected" text: unlike CarPlay's, it means the phone is on screen. */
+    static boolean isProjectedNotification(CharSequence text, String androidAutoSessionText) {
+        return text != null && androidAutoSessionText != null && text.toString().equals(androidAutoSessionText);
     }
 
     private static String lookupAndroidAutoSessionText(Context context) {

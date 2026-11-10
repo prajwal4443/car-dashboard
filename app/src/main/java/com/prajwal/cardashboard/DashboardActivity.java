@@ -155,6 +155,7 @@ public class DashboardActivity extends Activity {
     protected void onResume() {
         super.onResume();
         resumed = true;
+        AutoPlay.onHomeShown();
         runPendingStartup();
         AutoPlay.resumeAfterSettings(this);
         showGreeting();
